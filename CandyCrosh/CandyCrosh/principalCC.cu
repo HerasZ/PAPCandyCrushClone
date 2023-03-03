@@ -23,6 +23,7 @@ int comprobarBloques(int* matrizCoordenadas, int* tablero) {    //Al comprobar l
   //estilo de matrizCoordendas:
   //{{2,3}, {2,4}, {2,5}}   -> En el caso de fila
   //{{2,3}, {3,3}, {4,4}}   -> En el caso de columna
+    //CONTINUAR
     return 0;
 }
 
@@ -47,18 +48,20 @@ void eliminarBloques(int* arrayCoordenadas, int tamannoArray) {      //Parámetr
  
 //*PREGUNTAR PROFE?* -> Por qué me dice que numcColumnasTablero es una constante?
 
+//Activar la bomba en las coordenadas seleccionadas. La bomba borra todos los elementos de la fila/columan seleccionada
 void activarBomba(int filaColumna, int* coordenadasBomba) {      //'1' si queremos borrar fila, '0' si queremos borrar columna + numero de fila/columna que queramos borrar + coordenadas en las que se encuentra la bomba
     int longitudArrayCoordenadas = sizeof(coordenadasBomba) / sizeof(coordenadasBomba[0]);
-    if (longitudArrayCoordenadas!=2) {    // || (tablero[coordenadasBomba[0]][coordenadasBomba[1]]!='B' //Comprobamos si las coordenadas están bien introducidas
+    if (longitudArrayCoordenadas != 2) {    // || (tablero[coordenadasBomba[0]][coordenadasBomba[1]]!='B' //Comprobamos si las coordenadas están bien introducidas
         printf("\n\n\nERROR. Las coordenadas de la bomba solo pueden ser 2 números que indiquen: Fila, Columna.\n\n\n");
-    } else {
+    }
+    else {
         if (filaColumna) {      //Si es '1', entonces quiere decir que es 'true'
-            int filaBorrar[numColumnasTablero*2];       //Los elementos que vamos a borrar estarán esparcidos en la fila de la bomba y dependerán del número de columnas que haya. Se multiplica *2 porque son pares de coordenadas
+            int filaBorrar[numColumnasTablero * 2];       //Los elementos que vamos a borrar estarán esparcidos en la fila de la bomba y dependerán del número de columnas que haya. Se multiplica *2 porque son pares de coordenadas
             for (int i = 0; i < numColumnasTablero;i++) {
                 filaBorrar[i * 2] = coordenadasBomba[0];
                 filaBorrar[i * 2 + 1] = i;
             }
-            eliminarBloques(filaBorrar, numColumnasTablero*2);
+            eliminarBloques(filaBorrar, numColumnasTablero * 2);
         }
         else {                  //Si es '0', entonces quiere decir que es 'false'
             int columnaBorrar[numFilasTablero * 2];       //Los elementos que vamos a borrar estarán esparcidos en la fila de la bomba y dependerán del número de columnas que haya. Se multiplica *2 porque son pares de coordenadas
@@ -69,10 +72,44 @@ void activarBomba(int filaColumna, int* coordenadasBomba) {      //'1' si querem
             eliminarBloques(columnaBorrar, numColumnasTablero * 2);
         }
     }
+}
 
-//* void actierrarBomba(int nColumnaBorrar)       
+//Activar el TNT localizado en las coordenadas seleccionadas. El TNT elimina todos los bloques que se encuentran en un radio de 4 elementos.
+void activarTNT(int* coordenadasTNT) {
+    int longitudArrayCoordenadas = sizeof(coordenadasTNT) / sizeof(coordenadasTNT[0]);
+    if (longitudArrayCoordenadas != 2) {    // || (tablero[coordenadasTNT[0]][coordenadasTNT[1]]!='T' //Comprobamos si las coordenadas están bien introducidas
+        printf("\n\n\nERROR. Las coordenadas del TNT solo pueden ser 2 números que indiquen: Fila, Columna.\n\n\n");
+    } else {
+        //CONTINUAR 
+    }
+
+}
+
+
 //* void activarTNT()
-//* void activarRompecabezas(int bloqueEliminar)
+
+
+void activarRompecabezas(int* coordenadasRompecabezas) {
+    int longitudArrayCoordenadas = sizeof(coordenadasRompecabezas) / sizeof(coordenadasRompecabezas[0]);
+    if (longitudArrayCoordenadas != 2) {    // || (tablero[coordenadasTNT[0]][coordenadasTNT[1]]!='T' //Comprobamos si las coordenadas están bien introducidas
+        printf("\n\n\nERROR. Las coordenadas del Rompecabezas solo pueden ser 2 números que indiquen: Fila, Columna.\n\n\n");
+    }
+    else {
+        //TODO: Obtener el elemento que se encuentra en las coordenadas introducidas (Ej: R1,R2,...) y de ahí, obtener el color (número)
+        int colorBorrar = X;
+        //Recorremos secuencialmente el tablero buscando los bloques que sean del mismo color (mismo número) que el del rompecabezas
+        for (int i = 0; i < numFilasTablero; ++i) {
+            for (int j = 0; i < numColumnasTablero; ++j) {
+                if () {     //Si el elemento del tablero es igual al color que borrar, lo eliminamos
+                    int coordenadas[2] = { i,j };
+                    eliminarBloques(coordenadas, 2);
+                }
+            }
+        }
+        //CONTINUAR 
+    }
+}
+
 //* void dejarCaerBloques(int* tablero)         //Dejamos caer los bloques hasta que las celdas donde tengan un '0' sean rellenadas
 
 
