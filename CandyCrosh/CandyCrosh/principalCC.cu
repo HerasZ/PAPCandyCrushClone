@@ -10,10 +10,30 @@
 //Elementos:
 
 int** tablero;
-int numFilasTablero=0, numColumnasTablero=0;
-//* const int numVidas
+const int numVidas;
 
 //Funciones:
+
+//Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
+__global__ void generarTablero(int bloques, int nFilas, int nColumnas) {
+    numFilasTablero = nFilas;
+    numColumnasTablero = nColumnas;
+    //Reservamos memoria para las filas y columnas de la matriz:
+    tablero = (int**)malloc(nFilas * sizeof(int*));
+    for (int x = 0; x < nFilas; x++) {
+        tablero[x] = (int*)malloc(nColumnas * sizeof(int*));
+    }
+    srand(time(NULL)); // Inicializar la semilla para generar números aleatorios. Si lo quitamos, siempre se generarán los mismos números aleatorios
+    //Llenamos la matriz tablero con números aleatorios del 1 al 6
+    for (int i = 0; i < nFilas; i++) {
+        for (int j = 0; j < nColumnas; j++) {
+            tablero[i][j] = rand() % bloques + 1;
+        }
+    }
+}
+
+
+
 
 //* bool comprobarBloques(int[] bloques)			//Se introduce como parámetros un array de arrays. Estos arrays contienen las coordenadas de los bloques que se quieren eliminar (Contemplar tbn combinaciones verticales)
 //													//Si sale 'false'. entonces se restará una vida
@@ -21,26 +41,18 @@ int numFilasTablero=0, numColumnasTablero=0;
 // Si es falso, restamos una vida.
 int comprobarBloques(int* matrizCoordenadas, int* tablero) {    //Al comprobar las casillas, linealizar la matriz
   //estilo de matrizCoordendas:
-  //{{2,3}, {2,4}, {2,5}}   -> En el caso de fila
-  //{{2,3}, {3,3}, {4,4}}   -> En el caso de columna
+  //{2,3}   -> En el caso de fila
+  //{2,3}   -> En el caso de columna
     //CONTINUAR
     return 0;
 }
 
-//*COMMIT* -> NO HE CONSEGUIDO HACER QUE EL MÉTODO 'ELIMINARBLOQUE' SE LE PASE UN ARRAY DE VECTORES
-//*PREGUNTAR PROFE?* -> CÓMO HACER PARA AVERIGUAR EL TAMAÑO DE UN ARRAY 
-
 //Eliminar los elementos proporcionados en el array de coordenadas:
 void eliminarBloques(int* arrayCoordenadas, int tamannoArray) {      //Parámetro de entrada es un array donde cada 2 posiciones guarda unas coordenadas + longitud del array
-    //Hallamos el número de coordenadas que contiene el array
-    //*PREGUNTAR PROFE?* -> int longitud = sizeof(arrayCoordenadas)/sizeof(arrayCoordenadas[0]);    
-    //*PREGUNTAR PROFE?* ->int tamanno = sizeof(arrayCoordenadas);     //Me da 8 cuando debería ser 20, es porque es un puntero?
-    //printf("\n Longitud del array de coordenadas: %d\n ", tamanno);
     if (tamannoArray%2!=0) {     //Tratamiento de errores. Si el array tiene una longitud impar, entonces quiere decir que las coordenadas están incompletas
         printf("\n\n\nERROR. Longitud del array para 'eliminarBloques' debe ser par.\n\n\n");
     } else {
         for (int i = 0; i < tamannoArray; i+=2) {
-            //printf("Valor de i + valor de i+1: %d %d\n", arrayCoordenadas[i], arrayCoordenadas[i + 1]);
             tablero[arrayCoordenadas[i]][arrayCoordenadas[i + 1]] = 0;
         }
     }
@@ -114,23 +126,7 @@ void activarRompecabezas(int* coordenadasRompecabezas) {
 
 
 
-//Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
-void generarTablero(int bloques, int nFilas, int nColumnas) {
-    numFilasTablero = nFilas;
-    numColumnasTablero = nColumnas;
-  //Reservamos memoria para las filas y columnas de la matriz:
-  tablero = (int**)malloc(nFilas*sizeof(int*));
-  for (int x = 0; x < nFilas; x++) {
-      tablero[x] = (int*)malloc(nColumnas * sizeof(int*));
-  }
-  srand(time(NULL)); // Inicializar la semilla para generar números aleatorios. Si lo quitamos, siempre se generarán los mismos números aleatorios
-  //Llenamos la matriz tablero con números aleatorios del 1 al 6
-  for (int i = 0; i < nFilas; i++) {
-    for (int j = 0; j < nColumnas; j++) {
-      tablero[i][j] = rand() % bloques + 1;
-    }
-  }
-}
+
 
 //Imprimir tablero del juego:
 void imprimirTablero() {
@@ -145,7 +141,7 @@ void imprimirTablero() {
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 
-int main() {
+int main(int dificultad, int nfilas, int nColumnas) {   // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
   int filas=12;
   int columnas=12;
   int tiposCaramelos = 6;
