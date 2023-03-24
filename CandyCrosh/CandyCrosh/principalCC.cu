@@ -15,20 +15,13 @@ const int numVidas;
 //Funciones:
 
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
-__global__ void generarTablero(int bloques, int nFilas, int nColumnas) {
-    numFilasTablero = nFilas;
-    numColumnasTablero = nColumnas;
-    //Reservamos memoria para las filas y columnas de la matriz:
-    tablero = (int**)malloc(nFilas * sizeof(int*));
-    for (int x = 0; x < nFilas; x++) {
-        tablero[x] = (int*)malloc(nColumnas * sizeof(int*));
-    }
-    srand(time(NULL)); // Inicializar la semilla para generar números aleatorios. Si lo quitamos, siempre se generarán los mismos números aleatorios
-    //Llenamos la matriz tablero con números aleatorios del 1 al 6
-    for (int i = 0; i < nFilas; i++) {
-        for (int j = 0; j < nColumnas; j++) {
-            tablero[i][j] = rand() % bloques + 1;
-        }
+__global__ void generarTablero(int* tablero, int nFilas, int nColumnas, int tiposN) {
+
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+
+    if (j < nColumnas && i < nFilas) {
+        tablero[i * nColumnas + j] = rand() % tiposN;
     }
 }
 
@@ -140,20 +133,35 @@ void imprimirTablero() {
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------------
+// '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
 
-int main(int dificultad, int nfilas, int nColumnas) {   // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
-  int filas=12;
-  int columnas=12;
-  int tiposCaramelos = 6;
-  int bloquesBorrar[9] = {5,4,9,10,8,0,7,9,3};
-  int longitudArray = sizeof(bloquesBorrar)/sizeof(bloquesBorrar[0]);
+int main(int argc, char** argv) { 
+    const int filas = (int) argv[3];
+    const int columnas = (int)argv[4];
+    int tiposCaramelos;
+    int bloquesBorrar[9] = {5,4,9,10,8,0,7,9,3};
+    int longitudArray = sizeof(bloquesBorrar)/sizeof(bloquesBorrar[0]);
 
-  printf("Longitud del array: %d ", longitudArray);
-  generarTablero(tiposCaramelos, filas, columnas);
-  eliminarBloques((int*)bloquesBorrar, longitudArray);
-  imprimirTablero();
+    int* tablero_dev;
+    int** tablero_host;
 
-  return 0;
+    //Alocar tablero con memoria dinamica
+    tablero_host = (int**)malloc(filas * sizeof(int*));
+    for (int i = 0; i < filas; i++) {
+        tablero_host[i] = (int*)malloc(columnas * sizeof(int));
+    }
+
+    printf("Longitud del array: %d ", longitudArray);
+    generarTablero<<< 1,1 >>>(tablero_dev,filas,columnas,tiposCaramelos);
+    eliminarBloques((int*)bloquesBorrar, longitudArray);
+    imprimirTablero();
+
+    for (int i = 0; i < filas; i++) {
+        free(tablero_host[i]);
+    }
+    free(tablero_host);
+
+    return 0;
 }
 
 
