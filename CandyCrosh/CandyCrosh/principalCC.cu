@@ -22,8 +22,7 @@ __global__ void generarTablero(int* tablero, int nFilas, int nColumnas, int tipo
     int i = blockIdx.y * blockDim.y + threadIdx.y;
 
     //Iniciar el generador aleatorio
-    curand_init(1234, j, 0, &state[j]);
-
+    curand_init(3456, j, 0, &state[j]);
     if (j < nColumnas && i < nFilas) {
         tablero[i * nColumnas + j] = (curand(&state[i * nColumnas + j])%tiposN+1);
     }
@@ -44,7 +43,7 @@ void print_matrix(int* mtx, int m, int n) {
 int main(int argc, char** argv) { 
     const int filas = 8;
     const int columnas = 8;
-    int tiposCaramelos = 4;
+    int tiposCaramelos = 6;
 
     int* tablero_dev;
     int tablero_host[filas][columnas];
@@ -65,7 +64,7 @@ int main(int argc, char** argv) {
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
 
-    dim3 blocks((filas + 5 - 1) / 5, (columnas + 5 - 1) /5);
+    dim3 blocks(4, 4);
     dim3 threads(16, 16);
     generarTablero<<< blocks,threads >>>(tablero_dev,filas,columnas,tiposCaramelos,state);
 
