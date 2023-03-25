@@ -41,8 +41,8 @@ void print_matrix(int* mtx, int m, int n) {
 // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
 
 int main(int argc, char** argv) { 
-    const int filas = 8;
-    const int columnas = 8;
+    const int filas = 16;
+    const int columnas = 16;
     int tiposCaramelos = 6;
 
     int* tablero_dev;
@@ -64,8 +64,8 @@ int main(int argc, char** argv) {
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
 
-    dim3 blocks(4, 4);
-    dim3 threads(16, 16);
+    dim3 blocks(filas/2, columnas/2);
+    dim3 threads(filas*2, columnas*2);
     generarTablero<<< blocks,threads >>>(tablero_dev,filas,columnas,tiposCaramelos,state);
 
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
