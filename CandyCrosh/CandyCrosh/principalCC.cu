@@ -20,7 +20,6 @@ __global__ void generarTablero(int* tablero, int nFilas, int nColumnas, int tipo
 
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     int i = blockIdx.y * blockDim.y + threadIdx.y;
-
     //Iniciar el generador aleatorio
     curand_init(3456, j, 0, &state[j]);
     if (j < nColumnas && i < nFilas) {
@@ -61,35 +60,55 @@ __global__ void checkAndReplace(int* matrix, int row, int col) {
 
 //Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
 //* PROBAR QUE FUNCIONE BIEN
-__global__ void eliminarBloques(int* tablero, int fila, int columna) {
-    int tamannoMatriz = 5;
-    __shared__ int valoresFila[5];
-    __shared__ int valoresColumna[5];
-    
-    //Posición (2,2)
+__global__ void eliminarBloques(int* tablero, int size, int fila, int columna) {
+ 
+    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int row = tid / size;
+    int column = tid % size;
+    int carameloElegido = tablero[fila * size + columna];
 
-    // Cada hilo carga los valores de su fila y columna correspondientes en memoria compartida
-    //*HACER BOUNDARY CHECKS?
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    //Los hilos que pertenezcan a la fila de la posicion elegida ejecutan esto
+    if (tid < (size*size) && row == fila) {
+        int start = columna;
+        int end = columna;
+        
+        //Mientras haya caramelos iguales antes de nuestra posicion, llevar la posicion de la columna de inicio atras
+        while (start > 0 && tablero[row * size + start - 1] == carameloElegido) start--;
 
-    int valorEliminar = tablero[j*tamannoMatriz+i];
+        //Mientras haya caramelos iguales despues de nuestra posicion, aumentar la posicion de la columna de fin.
+        while (end < size - 1 && tablero[row * size + end + 1] == carameloElegido) end++;
 
-    valoresFila[i] = tablero[fila * tamannoMatriz + i];
-    valoresColumna[j] = tablero[i * tamannoMatriz + columna];
-    __syncthreads();
+        //Si la diferencia entre inicio y fin es mayor que 2, borramos todos los elementos poniendo un 0
+        if (end - start + 1 >= 2)
+        {
+            for (int i = start; i <= end; i++)
+            {
+                tablero[row * size + i] = 0;
+            }
+        }
 
-    // Cada hilo comprueba si su valor es igual a algún otro valor en su fila o columna
-    if (valorEliminar == tablero[(j+1) * tamannoMatriz + i]) {
-        // Si hay coincidencia, se sustituyen los valores por 0
-        tablero[j * tamannoMatriz + i] = 0;
-        tablero[(j+1) * tamannoMatriz + i] = 0;
     }
-    /*if (valoresColumna[j] == valoresColumna[j + 1]) {
-        // Si hay coincidencia, se sustituyen los valores por 0
-        tablero[i * tamannoMatriz + columna] = 0;
-        tablero[(j+1) * tamannoMatriz + columna] = 0;
-    }*/
+
+    //Los hilos de la columna de la posicion elegida ejecutan el else:
+    else if (tid < (size*size) && column == columna)
+    {
+        int start = fila;
+        int end = fila;
+
+        //Igual que en el codigo de las filas, pero ahora vamos moviendo el inicio y final por las filas, en vez de las columnas
+        while (start > 0 && tablero[(start - 1) * size + column] == carameloElegido) start--;
+        while (end < size - 1 && tablero[(end + 1) * size + column] == carameloElegido) end++;
+
+        //Remplazamos con 0s igual que en la fila
+        if (end - start + 1 >= 2)
+        {
+            for (int i = start; i <= end; i++)
+            {
+                tablero[i * size + column] = 0;
+            }
+        }
+    }
+    __syncthreads();
 }
 //Eliminar el número de la fila o columna indicada por 'posActivar'. Si 'filaColumna' es True, entonces borra la fila, si es False, borra la columna:
 __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int nFilas, int nColumnas ) {
@@ -153,8 +172,6 @@ int main(int argc, char** argv) {
             tablero_host[i][j] = 0;
         }
     }
-    print_matrix((int*)tablero_host, filas, columnas);
-
     curandState* state;
 
     //Dar memoria a la matriz y el generador aleatorio en la GPU
@@ -162,9 +179,8 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&tablero_dev,filas*columnas*sizeof(int));
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-
-    dim3 blocks(filas/2, columnas/2);
-    dim3 threads(filas*2, columnas*2);
+    dim3 blocks(filas, columnas);
+    dim3 threads(filas, columnas);
     generarTablero<<< blocks,threads >>>(tablero_dev,filas,columnas,tiposCaramelos,state);
 
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
@@ -175,9 +191,9 @@ int main(int argc, char** argv) {
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    activarTNT << < blocks, threads >> > (tablero_dev, 2, 2);
+    //activarTNT << < blocks, threads >> > (tablero_dev, 2, 2);
     //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);
-    //eliminarBloques << <blocks, threads >> > (tablero_dev, 2, 2);
+    eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, 2, 2);
     //checkAndReplace << <blocks, threads >> > (tablero_dev, 2,2);
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
