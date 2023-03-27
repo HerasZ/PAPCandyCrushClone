@@ -28,6 +28,7 @@ __global__ void generarTablero(int* tablero, int nFilas, int nColumnas, int tipo
     }
 }
 
+//Impresión de la matriz por pantalla:
 void print_matrix(int* mtx, int m, int n) {
     for (int i = 0; i < m; i++) {
         for (int j = 0; j < n; j++) {
@@ -37,12 +38,110 @@ void print_matrix(int* mtx, int m, int n) {
     }
 }
 
+__global__ void checkAndReplace(int* matrix, int row, int col) {
+    const int tamMatriz = 5;
+    __shared__ int rowValues[tamMatriz];
+    __shared__ int colValues[tamMatriz];
+    int i, j;
+
+    // Cada hilo carga los valores de su fila y columna correspondientes en memoria compartida
+    i = threadIdx.x;
+    j = blockIdx.x;
+    rowValues[i] = matrix[row * tamMatriz + i];
+    colValues[i] = matrix[i * tamMatriz + col];
+    __syncthreads();
+
+    // Cada hilo comprueba si su valor es igual a algún otro valor en su fila o columna
+    if (rowValues[i] == colValues[j]) {
+        // Si hay coincidencia, se sustituyen los valores por 0
+        matrix[row * tamMatriz + i] = 0;
+        matrix[i * tamMatriz + col] = 0;
+    }
+}
+
+//Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
+//* PROBAR QUE FUNCIONE BIEN
+__global__ void eliminarBloques(int* tablero, int fila, int columna) {
+    int tamannoMatriz = 5;
+    __shared__ int valoresFila[5];
+    __shared__ int valoresColumna[5];
+    
+    //Posición (2,2)
+
+    // Cada hilo carga los valores de su fila y columna correspondientes en memoria compartida
+    //*HACER BOUNDARY CHECKS?
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+
+    int valorEliminar = tablero[j*tamannoMatriz+i];
+
+    valoresFila[i] = tablero[fila * tamannoMatriz + i];
+    valoresColumna[j] = tablero[i * tamannoMatriz + columna];
+    __syncthreads();
+
+    // Cada hilo comprueba si su valor es igual a algún otro valor en su fila o columna
+    if (valorEliminar == tablero[(j+1) * tamannoMatriz + i]) {
+        // Si hay coincidencia, se sustituyen los valores por 0
+        tablero[j * tamannoMatriz + i] = 0;
+        tablero[(j+1) * tamannoMatriz + i] = 0;
+    }
+    /*if (valoresColumna[j] == valoresColumna[j + 1]) {
+        // Si hay coincidencia, se sustituyen los valores por 0
+        tablero[i * tamannoMatriz + columna] = 0;
+        tablero[(j+1) * tamannoMatriz + columna] = 0;
+    }*/
+}
+//Eliminar el número de la fila o columna indicada por 'posActivar'. Si 'filaColumna' es True, entonces borra la fila, si es False, borra la columna:
+__global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int nFilas, int nColumnas ) {
+    int x = threadIdx.x;
+//    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    if (filaColumna) {
+        if (posActivar < nFilas) {
+            if (x < nFilas) {
+                tablero[posActivar * nColumnas + x] = 0;
+        }}
+        else {
+            //De momento lo comento porque se imprime por cada hilo
+            //printf("\n\n ERROR: No es posible borrar una fila fuera del rango de la matriz\n\n");
+    }}
+    else {
+        if (posActivar < nColumnas) {
+            if (x < nColumnas) {
+                tablero[x * nColumnas + posActivar] = 0;
+            }} else{
+            //printf("\n\n ERROR: No es posible borrar una columna fuera del rango de la matriz\n\n");
+    }} 
+}
+
+//activarRompecabezas
+
+/*__global__ void activarTNT(int* tablero, int fila, int columna) {
+    int j = blockIdx.x * blockDim.x + threadIdx.x;
+    int i = blockIdx.y * blockDim.y + threadIdx.y;
+
+    int tamannoMatriz = 15;
+    tablero[fila * tamannoMatriz + columna] = 0;
+    tablero[fila * tamannoMatriz + columna+1] = 0;
+    tablero[(fila+1) * tamannoMatriz + columna] = 0;
+
+    
+    if (row == 4 || col == 4) {
+        return;
+    }
+    int index_next = row * 5 + col + 1;
+    int index_up = (row - 1) * 5 + col;
+    matrix[index_next] = 0;
+    matrix[index_up] = 0;
+}
+*/
+
+
 //-------------------------------------------------------------------------------------------------------------------------------------
 // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
 
 int main(int argc, char** argv) { 
-    const int filas = 16;
-    const int columnas = 16;
+    const int filas = 15; 
+    const int columnas = 15;
     int tiposCaramelos = 6;
 
     int* tablero_dev;
@@ -70,6 +169,17 @@ int main(int argc, char** argv) {
 
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 
+
+
+
+    printf("\n");
+    print_matrix((int*)tablero_host, filas, columnas);
+    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+    activarTNT << < blocks, threads >> > (tablero_dev, 2, 2);
+    //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);
+    //eliminarBloques << <blocks, threads >> > (tablero_dev, 2, 2);
+    //checkAndReplace << <blocks, threads >> > (tablero_dev, 2,2);
+    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
 
