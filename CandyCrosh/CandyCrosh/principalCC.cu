@@ -29,22 +29,10 @@ __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tip
 //Impresión de la matriz por pantalla:
 void print_matrix(int* mtx, int m, int n) {
 
-    //Fila de coordenadas eje X
-    printf("    ");
-    for (int j = 0; j < n; j++) {
-        printf("%d ", j);
-    }
-    printf("\n   ");
-    for (int j = 0; j < n; j++) {
-        printf("--");
-    }
-    printf("\n");
-
     for (int i = 0; i < m; i++) {
-        //Fila de coordenadas eje Y
-        printf("%d | ", i);
+        printf("\t");
         for (int j = 0; j < n; j++) {
-            //Conteneido de la matriz
+            //Contenido de la matriz
             printf("%d ", mtx[i*n+j]);
         }
         printf("\n");
