@@ -6,9 +6,8 @@
 #include <time.h>
 #include <stdio.h>
 
-//Dividir qué funciones se ejecutarán en la GPU y qué funciones en la CPU:
 
-//Elementos:
+//Variables:
 
 int** tablero;
 const int numVidas = 3;
@@ -140,12 +139,6 @@ __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
     }
 }
 
-//Todos los bloques que encuentre que estan con valor 0, genera un nuevo valor aleatorio para ellos
-__global__ void rellenarBloques() {
-    // HACER REFACTOR DE GENERARTABLERO, LLAMANDOLO RELLENARTABLERO, PONIENDOLE LA CONDICION DE QUE DICHA POSICIÓN DEBE TENER UN VALOR IGUAL A 0?
-
-}
-
 /*__global__ void activarTNT(int* tablero, int fila, int columna) {
     int j = blockIdx.x * blockDim.x + threadIdx.x;
     int i = blockIdx.y * blockDim.y + threadIdx.y;
@@ -184,6 +177,7 @@ int main(int argc, char** argv) {
             tablero_host[i][j] = 0;
         }
     }
+
     curandState* state;
 
     //Dar memoria a la matriz y el generador aleatorio en la GPU
@@ -195,41 +189,34 @@ int main(int argc, char** argv) {
     dim3 threads(filas, columnas);
     printf("\nGeneracion inicial del tablero:\n");
     rellenarTablero<<< blocks,threads >>>(tablero_dev,filas,columnas,tiposCaramelos,state);
-
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-
-
-
-
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
+
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);          //Se deben mandar los hilos equivalentes a la longitud de la fila
-
     printf("\nActivacion del rompecabezas con el numero 4:\n");
     activarRompecabezas << <blocks,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
-
     //eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, 2, 2);
-    //checkAndReplace << <blocks, threads >> > (tablero_dev, 2,2);
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
+
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     printf("\nDejar caer bloques por la gravedad, subiendo los ceros:\n");
     dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);     //Se deben lanzar los hilos equivalentes al número de columnas
-
-    //lowerColumn << <1, columnas >> > (tablero_dev, filas, columnas, 0);
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
 
-    printf("\nSobrescribir los ceros del tablero por nuevos numeros generados aleatoriamente:\n");
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+    printf("\nSobrescribir los ceros del tablero por nuevos numeros generados aleatoriamente:\n");
     rellenarTablero << <1, threads >> > (tablero_dev, filas, columnas,tiposCaramelos, state);     //Se deben lanzar los hilos equivalentes al número de columnas
-
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
+
+
     cudaFree(tablero_dev);
 
     return 0;
