@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <stdio.h>
+#include <ctype.h>
 
 
 //Variables:
@@ -166,6 +167,20 @@ __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
 //-------------------------------------------------------------------------------------------------------------------------------------
 // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
 
+
+int validate_input(const char* prompt) {
+    int num;
+    char c;
+
+    printf("%s", prompt);
+    while (scanf("%d%c", &num, &c) != 2 || c != '\n') {
+        while (getchar() != '\n');
+        printf("Invalid input. %s", prompt);
+    }
+
+    return num;
+}
+
 int main(int argc, char** argv) { 
     const int filas = 10; 
     const int columnas = 10;
@@ -195,6 +210,28 @@ int main(int argc, char** argv) {
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
+
+    //BUCLE DEL JUEGO!!!
+    int coordX;
+    int coordY;
+    while (true) {
+        system("cls");
+        print_matrix((int*)tablero_host, filas, columnas);
+        printf("\n");
+
+        coordX = validate_input("Introduce la coordenada X (columna): ");
+        coordY= validate_input("Introduce la coordenada Y (fila): ");
+
+        //TODO: eliminar bloques deberia devolver algo que indica si se ha modificado la matriz, para saber que hacer
+        //Si se elimina algo, mostrar el paso de la matriz con los elementos eliminados y la caida de los nuevos
+        //Si no, informar que se ha perdido una vida y seguir
+        eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, coordY, coordX);
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+
+
+    }
+
+
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);          //Se deben mandar los hilos equivalentes a la longitud de la fila
