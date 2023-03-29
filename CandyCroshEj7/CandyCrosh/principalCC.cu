@@ -100,7 +100,7 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
 }
 
 //Eliminar todas las apariciones de un color de caramelo (que corresponde a un número entre 1-6) en el tablero:
-__global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
+__global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas, int coordX, int coordY) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
     int i = blockIdx.x * blockDim.x + threadIdx.x;
 
     //Comprobamos que el índice se encuentre dentro de los límites de la matriz
@@ -109,6 +109,7 @@ __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int n
         if (tablero[i] == colorBloqueEliminar) {
             tablero[i] = 0;
         }
+        tablero[coordX * nFilas + coordY] = 0;
     }
 
 }
@@ -348,7 +349,7 @@ int main(int argc, char** argv) {
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else if (tablero_host[coordY][coordX] > 49 && tablero_host[coordY][coordX] < 57) {
-            activarRompecabezas << <blocks,threads >> > (tablero_dev, tablero_host[coordY][coordX]%10, filas, columnas);
+            activarRompecabezas << <blocks,threads >> > (tablero_dev, tablero_host[coordY][coordX]%10, filas, columnas,coordX,coordY);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else {
@@ -367,6 +368,7 @@ int main(int argc, char** argv) {
                 //El 5x es un rompecabezas
                 tablero_host[coordY][coordX] = 50 + tablero_host[coordY][coordX]%10;
             }
+            cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
 
         }
  
