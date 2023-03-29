@@ -28,46 +28,60 @@ __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tip
 
 
 //Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
-__global__ void eliminarBloques(int* tablero, int size, int fila, int columna) {
- 
+__global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coordY, int coordX) {
+    
     int tid = threadIdx.x + blockIdx.x * blockDim.x;
-    int row = tid / size;
-    int column = tid % size;
-    int carameloElegido = tablero[fila * size + columna];
+    int carameloElegido = tablero[coordY * nRows + coordX];
+    __shared__ int posicionesEliminadas;   
 
     //Los hilos que pertenezcan a la fila de la posicion elegida ejecutan esto
-    if (tid < (size*size) && row == fila) {
-        int start = columna;
-        int end = columna;
+    if (tid < (nRows*nColumns) && tid == coordY) {
+        int start = coordX;
+        int end = coordX;
         
         //Mientras haya caramelos iguales antes de nuestra posicion, llevar la posicion de la columna de inicio atras
-        while (start > 0 && tablero[row * size + start - 1] == carameloElegido) start--;
+        while (start > 0 && tablero[tid * nRows + start - 1] == carameloElegido) start--;
 
         //Mientras haya caramelos iguales despues de nuestra posicion, aumentar la posicion de la columna de fin.
-        while (end < size - 1 && tablero[row * size + end + 1] == carameloElegido) end++;
+        while (end < nColumns - 1 && tablero[tid * nRows + end + 1] == carameloElegido) end++;
 
         //Si la diferencia entre inicio y fin es mayor que 2, borramos todos los elementos poniendo un 0
         if (end - start + 1 >= 2) {
             for (int i = start; i <= end; i++) {
-                tablero[row * size + i] = 0;
+                tablero[tid * nRows + i] = 0;
+                atomicAdd(&posicionesEliminadas,1);
             }
         }
     }
     //Los hilos de la columna de la posicion elegida ejecutan el else:
-    else if (tid < (size*size) && column == columna) {
-        int start = fila;
-        int end = fila;
+    else if (tid < (nRows*nColumns) && tid == coordX) {
+        int start = coordY;
+        int end = coordY;
         //Igual que en el codigo de las filas, pero ahora vamos moviendo el inicio y final por las filas, en vez de las columnas
-        while (start > 0 && tablero[(start - 1) * size + column] == carameloElegido) start--;
-        while (end < size - 1 && tablero[(end + 1) * size + column] == carameloElegido) end++;
+        while (start > 0 && tablero[(start - 1) * nRows + tid] == carameloElegido) start--;
+        while (end < nRows - 1 && tablero[(end + 1) * nRows + tid] == carameloElegido) end++;
         //Remplazamos con 0s igual que en la fila
         if (end - start + 1 >= 2) {
             for (int i = start; i <= end; i++) {
-                tablero[i * size + column] = 0;
+                tablero[i * nRows + tid] = 0;
+                atomicAdd(&posicionesEliminadas, 1);
             }
         }
     }
     __syncthreads();
+
+    if (posicionesEliminadas == 5) {
+        //El 10 es una bomba
+        tablero[coordY * nRows + coordX] = 10;
+    }
+    else if (posicionesEliminadas == 6) {
+        //El 20 es una TNT
+        tablero[coordY * nRows + coordX] = 20;
+    }
+    else if (posicionesEliminadas > 6) {
+        //El 33 es un rompecabezas
+        tablero[coordY * nRows + coordX] = 50 + carameloElegido;
+    }
 }
 
 //Eliminar el número de la fila o columna indicada por 'posActivar'. Si 'filaColumna' es True, entonces borra la fila, si es False, borra la columna:
@@ -189,6 +203,18 @@ void print_matrix(int* mtx, int m, int n) {
                 //Si el valor es 0 (elemento borrado) no imprimimos nada
                 printf("  ");
             }
+            else if(valorCelda == 10) {
+                //La bomba se representa con B al imprimir
+                printf("B ");
+            }
+            else if (valorCelda == 20) {
+                //La TNT se representa con T al imprimir
+                printf("T ");
+            }
+            else if (valorCelda > 49 && valorCelda < 57) {
+                //El rompecabezas se representa con Rx al imprimir
+                printf("R%d",(valorCelda%10));
+            }
             else {
                 //Imprimimos el valor del caramelo
                 printf("%d ", valorCelda);
@@ -201,7 +227,7 @@ void print_matrix(int* mtx, int m, int n) {
 int main(int argc, char** argv) { 
     const int filas = 10; 
     const int columnas = 10;
-    int tiposCaramelos = 6;
+    int tiposCaramelos = 4;
     int vidas = 5;
 
     int* tablero_dev;
@@ -238,14 +264,15 @@ int main(int argc, char** argv) {
         print_matrix((int*)tablero_host, filas, columnas);
 
         //Pedir las coordenadas al usuario
+        coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
         coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
-        coordY= validate_input("Introduce la coordenada Y (fila): ") - 1;
+        
 
         //Intentar eliminar bloques en la posicion que se ha indicado
 
         //TODO: Comprobar si la posicion que hemos elegido es un caramelo, rompecabezas, o distintos para ejecutar 
         // el kernel que corresponde
-        eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, coordY, coordX);
+        eliminarBloques << <1, filas+columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 
 
