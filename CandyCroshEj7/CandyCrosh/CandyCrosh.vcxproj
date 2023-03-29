@@ -13,6 +13,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{E9529453-F4F8-492A-9A15-21C676E36E3A}</ProjectGuid>
     <RootNamespace>CandyCrosh</RootNamespace>
+    <ProjectName>CandyCroshej7</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
