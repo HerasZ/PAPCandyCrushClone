@@ -130,28 +130,56 @@ __global__ void activarTNT(int* tablero, int posXActivar, int posYActivar, int n
 }
 
 //Sobreescribir bloques con valor 0 con el valor de los bloques que se encuentren arriba de este. En caso de no tener bloques por encima, se generarán nuevos bloques:
-//*PONER EN LA MEMORIA QUE TBN SE ME HABIA OCURRIDO HACER QUE SE SUBA EL 0 Y BAJAR UNA LSITA CON EL RESTO DE ELEMENTOS, PERO COMO ES COMPLICADO TRABAJAR CON ARRAYS DINAMICOS, FUE DESCARTADO
 __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
+
+    int i = threadIdx.x + blockIdx.x * blockDim.x; // nuevo índice que tiene en cuenta el número de hilos por bloque y bloques
+    int posColumna = i % nColumnas;
+
+    if (i<nFilas*nColumnas) {
+        //Se recorre la columna en busca de algún 0:
+        for (int lugarColumna = 0; lugarColumna < nFilas; ++lugarColumna) {
+            if (tablero[posColumna + (nColumnas * lugarColumna)] == 0) {
+                int posicionBloqueCero = posColumna + (nColumnas * lugarColumna);
+                //En caso de encontrar un 0, vamos a iterar hasta que se encuentre en la primera fila de la matriz:
+                while ((posicionBloqueCero / nColumnas) > 0) {
+                    //printf("\nHilo %d Cambia su posicion %d por %d\n", i, tablero[posicionBloqueCero], tablero[posicionBloqueCero - nColumnas]);
+                    tablero[posicionBloqueCero] = tablero[posicionBloqueCero - nColumnas];
+                    tablero[posicionBloqueCero - nColumnas] = 0;
+                    posicionBloqueCero -= nColumnas;
+                }
+                //Escribimos un 0 en la primera fila de la matriz:
+                tablero[posicionBloqueCero] = 0;
+            }
+        }
+    }
+}
+
+/*
+__global__ void dejarCaerBloquees(int* tablero, int nFilas, int nColumnas) {
 
     int i = threadIdx.x; // calcula el índice correspondiente en la matriz
     int posColumna = i % nColumnas;
     int sigPosColumna = (i % nColumnas) + nColumnas;
 
-    //Se recorre la columna en busca de algún 0:
-    for (int lugarColumna = 0; lugarColumna < nFilas; ++lugarColumna) {
-        if (tablero[posColumna + (nColumnas * lugarColumna)] == 0) {
-            int posicionBloqueCero = posColumna + (nColumnas * lugarColumna);
-            //En caso de encontrar un 0, vamos a iterar hasta que se encuentre en la primera fila de la matriz:
-            while ((posicionBloqueCero / nColumnas) > 0) {
-                tablero[posicionBloqueCero] = tablero[posicionBloqueCero - nColumnas];
-                tablero[posicionBloqueCero - nColumnas] = 0;
-                posicionBloqueCero -= nColumnas;
+    if (i<nFilas*nColumnas) {
+        //Se recorre la columna en busca de algún 0:
+        for (int lugarColumna = 0; lugarColumna < nFilas; ++lugarColumna) {
+            if (tablero[posColumna + (nColumnas * lugarColumna)] == 0) {
+                int posicionBloqueCero = posColumna + (nColumnas * lugarColumna);
+                //printf("\nHilo %d Encuentra un 0 en %d. Dicho elemento es %d\n", i, posicionBloqueCero, tablero[posicionBloqueCero]);
+                //En caso de encontrar un 0, vamos a iterar hasta que se encuentre en la primera fila de la matriz:
+                while ((posicionBloqueCero / nColumnas) > 0) {
+                    //printf("\nHilo %d entra en WHILE. Cambia %d por %d\n", i, tablero[posicionBloqueCero], tablero[posicionBloqueCero - nColumnas]);
+                    tablero[posicionBloqueCero] = tablero[posicionBloqueCero - nColumnas];
+                    tablero[posicionBloqueCero - nColumnas] = 0;
+                    posicionBloqueCero -= nColumnas;
+                }
+                //Escribimos un 0 en la primera fila de la matriz:
+                tablero[posicionBloqueCero] = 0;
             }
-            //Escribimos un 0 en la primera fila de la matriz:
-            tablero[posicionBloqueCero] = 0;
         }
     }
-}
+}*/
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
@@ -187,6 +215,7 @@ int posicionesEliminadas(int* mtx, int m, int n) {
 
 //Impresión de la matriz por pantalla:
 void print_matrix(int* mtx, int m, int n) {
+    printf("\n");
     int valorCelda;
     for (int i = 0; i < m; i++) {
         printf("\t");
@@ -194,27 +223,28 @@ void print_matrix(int* mtx, int m, int n) {
             valorCelda = mtx[i * n + j];
             if (valorCelda == 0) {
                 //Si el valor es 0 (elemento borrado) no imprimimos nada
-                printf("  ");
+                printf("   ");
             }
             else if (valorCelda == 10) {
                 //La bomba se representa con B al imprimir
-                printf("B ");
+                printf(" B ");
             }
             else if (valorCelda == 20) {
                 //La TNT se representa con T al imprimir
-                printf("T ");
+                printf(" T ");
             }
             else if (valorCelda > 49 && valorCelda < 57) {
                 //El rompecabezas se representa con Rx al imprimir
-                printf("R%d", (valorCelda % 10));
+                printf("R%d ", (valorCelda % 10));
             }
             else {
                 //Imprimimos el valor del caramelo
-                printf("%d ", valorCelda);
+                printf(" %d ", valorCelda);
             }
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 int main(int argc, char** argv) {
@@ -249,10 +279,43 @@ int main(int argc, char** argv) {
     //BUCLE DEL JUEGO!!!
     int coordX;
     int coordY;
+    /*
+    while (true) {
+        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        tablero_host[8][7] = 0;
+        tablero_host[9][7] = 0;
+        tablero_host[6][7] = 0;
+        tablero_host[7][7] = 0;
+        tablero_host[5][7] = 0;
+        tablero_host[4][7] = 20;
+        printf("Imprimimos matriz\n");
+        print_matrix((int*)tablero_host, filas, columnas);
+        getchar();
+        printf("Dejamos caer elementos\n");
+        cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+        dejarCaerBloquees << <blocks, threads >> > (tablero_dev, filas, columnas);
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        printf("Imprimimos matriz 222222\n");
+        print_matrix((int*)tablero_host, filas, columnas);
+        getchar();
+        cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        printf("Imprimimos matriz 333333\n");
+        print_matrix((int*)tablero_host, filas, columnas);
+        getchar();
+
+    }*/
+
 
     while (vidas > 0) {
         //Al empezar cada ronda, rellenar el tablero con caramelos
         system("cls");
+        printf("\n \t\tCUNDY CROSH SOGA\n");
+        printf("----------------------------------------------------------------\n");
+        printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+        printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
         rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         print_matrix((int*)tablero_host, filas, columnas);
@@ -270,13 +333,12 @@ int main(int argc, char** argv) {
         }
         
         //Intentar eliminar bloques en la posicion que se ha indicado
-
         if (tablero_host[coordY][coordX] == 10) {
-            int filaCol = rand() % 2;
-            if (filaCol == 1) {
+            bool filaCol = rand() % 2;
+            if (filaCol) {
                 activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
             }
-            else if (filaCol == 0) {
+            else if (filaCol) {
                 activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
             }
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
@@ -317,15 +379,28 @@ int main(int argc, char** argv) {
         else {
             //Cuando si se ha modificado el tablero
             system("cls");
+            printf("\n \t\tCUNDY CROSH SOGA\n");
+            printf("----------------------------------------------------------------\n");
+            printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+            printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
             print_matrix((int*)tablero_host, filas, columnas);
             getchar();
             system("cls");
-            dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);
+            printf("\n \t\tCUNDY CROSH SOGA\n");
+            printf("----------------------------------------------------------------\n");
+            printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+            printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+            dejarCaerBloques << <blocks, columnas>> > (tablero_dev, filas, columnas);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             print_matrix((int*)tablero_host, filas, columnas);
             getchar();
         }
     }
+
+    printf("\n\tGAME OVER X_X\n");
+    printf("\n\tGracias por jugar!\n");
+    printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
+    printf("\n\n-------------------------------------------------------\n\n");
 
     cudaFree(tablero_dev);
     cudaFree(state);
