@@ -11,7 +11,6 @@
 //Variables:
 
 int** tablero;
-const int numVidas = 3;
 
 //Funciones:
 
@@ -27,18 +26,6 @@ __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tip
     }
 }
 
-//Impresión de la matriz por pantalla:
-void print_matrix(int* mtx, int m, int n) {
-
-    for (int i = 0; i < m; i++) {
-        printf("\t");
-        for (int j = 0; j < n; j++) {
-            //Contenido de la matriz
-            printf("%d ", mtx[i*n+j]);
-        }
-        printf("\n");
-    }
-}
 
 //Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
 __global__ void eliminarBloques(int* tablero, int size, int fila, int columna) {
@@ -177,10 +164,45 @@ int validate_input(const char* prompt) {
     return num;
 }
 
+int posicionesEliminadas(int* mtx, int m, int n) {
+    int veces = 0;
+    for (int i = 0; i < m; i++) {
+        for (int j = 0; j < n; j++) {
+            if (mtx[i * n + j] == 0) {
+                veces++;
+            }
+            
+        }
+    }
+    return veces;
+}
+
+
+//Impresión de la matriz por pantalla:
+void print_matrix(int* mtx, int m, int n) {
+    int valorCelda;
+    for (int i = 0; i < m; i++) {
+        printf("\t");
+        for (int j = 0; j < n; j++) {
+            valorCelda = mtx[i * n + j];
+            if (valorCelda == 0) {
+                //Si el valor es 0 (elemento borrado) no imprimimos nada
+                printf("  ");
+            }
+            else {
+                //Imprimimos el valor del caramelo
+                printf("%d ", valorCelda);
+            }
+        }
+        printf("\n");
+    }
+}
+
 int main(int argc, char** argv) { 
     const int filas = 10; 
     const int columnas = 10;
     int tiposCaramelos = 6;
+    int vidas = 5;
 
     int* tablero_dev;
     int tablero_host[filas][columnas];
@@ -202,30 +224,48 @@ int main(int argc, char** argv) {
     dim3 blocks(filas, columnas);
     dim3 threads(filas, columnas);
     printf("\nGeneracion inicial del tablero:\n");
-    rellenarTablero<<< blocks,threads >>>(tablero_dev,filas,columnas,tiposCaramelos,state);
-    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-    printf("\n");
-    print_matrix((int*)tablero_host, filas, columnas);
+    
 
     //BUCLE DEL JUEGO!!!
     int coordX;
     int coordY;
 
-    while (true) {
+    while (vidas > 0) {
+        //Al empezar cada ronda, rellenar el tablero con caramelos
         system("cls");
+        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         print_matrix((int*)tablero_host, filas, columnas);
-        printf("\n");
 
-        coordX = validate_input("Introduce la coordenada X (columna): ");
-        coordY= validate_input("Introduce la coordenada Y (fila): ");
+        //Pedir las coordenadas al usuario
+        coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
+        coordY= validate_input("Introduce la coordenada Y (fila): ") - 1;
 
-        //TODO: eliminar bloques deberia devolver algo que indica si se ha modificado la matriz, para saber que hacer
-        //Si se elimina algo, mostrar el paso de la matriz con los elementos eliminados y la caida de los nuevos
-        //Si no, informar que se ha perdido una vida y seguir
+        //Intentar eliminar bloques en la posicion que se ha indicado
+
+        //TODO: Comprobar si la posicion que hemos elegido es un caramelo, rompecabezas, o distintos para ejecutar 
+        // el kernel que corresponde
         eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, coordY, coordX);
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 
 
+        if (posicionesEliminadas((int*)tablero_host,filas,columnas) == 0) {
+            //Si no se ha eliminado ningun caramelo con el kernel
+            vidas--;
+            printf("\nPosicion mala: te quedan %d vidas\n", vidas);
+            getchar();
+        }
+        else {
+            //Cuando si se ha modificado el tablero
+            system("cls");
+            print_matrix((int*)tablero_host, filas, columnas);
+            getchar();
+            system("cls");
+            dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+            print_matrix((int*)tablero_host, filas, columnas);
+            getchar();
+        }
     }
     
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
