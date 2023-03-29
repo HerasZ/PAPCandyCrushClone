@@ -280,34 +280,6 @@ int main(int argc, char** argv) {
     //BUCLE DEL JUEGO!!!
     int coordX;
     int coordY;
-    /*
-    while (true) {
-        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-        tablero_host[8][7] = 0;
-        tablero_host[9][7] = 0;
-        tablero_host[6][7] = 0;
-        tablero_host[7][7] = 0;
-        tablero_host[5][7] = 0;
-        tablero_host[4][7] = 20;
-        printf("Imprimimos matriz\n");
-        print_matrix((int*)tablero_host, filas, columnas);
-        getchar();
-        printf("Dejamos caer elementos\n");
-        cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-        dejarCaerBloquees << <blocks, threads >> > (tablero_dev, filas, columnas);
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-        printf("Imprimimos matriz 222222\n");
-        print_matrix((int*)tablero_host, filas, columnas);
-        getchar();
-        cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-        printf("Imprimimos matriz 333333\n");
-        print_matrix((int*)tablero_host, filas, columnas);
-        getchar();
-
-    }*/
 
 
     while (vidas > 0) {
@@ -353,6 +325,7 @@ int main(int argc, char** argv) {
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else {
+            int valor = tablero_host[coordY][coordX];
             eliminarBloques << < filas, columnas>> > (tablero_dev, filas, columnas, coordY, coordX);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             int posiciones = posicionesEliminadas((int*)tablero_host, filas, columnas);
@@ -366,7 +339,7 @@ int main(int argc, char** argv) {
             }
             else if (posiciones > 6) {
                 //El 5x es un rompecabezas
-                tablero_host[coordY][coordX] = 50 + tablero_host[coordY][coordX]%10;
+                tablero_host[coordY][coordX] = 50 + valor%10;
             }
             cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
 
