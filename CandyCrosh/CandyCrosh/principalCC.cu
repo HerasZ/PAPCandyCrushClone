@@ -119,6 +119,22 @@ __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int n
     
 }
 
+//Eliminar todos los bloques en un radio de 4 elementos obteniendo como centro la posición indicada en las coordenadas ('posXActivar', 'posYActivar'):
+__global__ void activarTNT(int* tablero, int posXActivar, int posYActivar, int nFilas, int nColumnas) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
+    int radioExplosion = 2;     //Radio de bloques que afectará la explosión del TNT con respecto del centro, que es la posición introducida como parámetro de entrada
+
+    //Comprobamos que el índice se encuentre dentro de los límites de la matriz
+    if (i < nFilas * nColumnas) {
+        //Comprobamos que la posición analizada esté dentro del rango de 'radioExplosion' elementos de radio
+        if ((i >= posYActivar - radioExplosion) && (i <= posYActivar + radioExplosion) &&
+            (j >= posXActivar - radioExplosion) && (j <= posXActivar + radioExplosion)){
+                tablero[i*nColumnas+j] = 0;
+        }
+    }
+}
+
 //Sobreescribir bloques con valor 0 con el valor de los bloques que se encuentren arriba de este. En caso de no tener bloques por encima, se generarán nuevos bloques:
 //*PONER EN LA MEMORIA QUE TBN SE ME HABIA OCURRIDO HACER QUE SE SUBA EL 0 Y BAJAR UNA LSITA CON EL RESTO DE ELEMENTOS, PERO COMO ES COMPLICADO TRABAJAR CON ARRAYS DINAMICOS, FUE DESCARTADO
 __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
@@ -142,26 +158,6 @@ __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
         }
     }
 }
-
-/*__global__ void activarTNT(int* tablero, int fila, int columna) {
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
-
-    int tamannoMatriz = 15;
-    tablero[fila * tamannoMatriz + columna] = 0;
-    tablero[fila * tamannoMatriz + columna+1] = 0;
-    tablero[(fila+1) * tamannoMatriz + columna] = 0;
-
-    
-    if (row == 4 || col == 4) {
-        return;
-    }
-    int index_next = row * 5 + col + 1;
-    int index_up = (row - 1) * 5 + col;
-    matrix[index_next] = 0;
-    matrix[index_up] = 0;
-}
-*/
 
 
 //-------------------------------------------------------------------------------------------------------------------------------------
@@ -214,6 +210,7 @@ int main(int argc, char** argv) {
     //BUCLE DEL JUEGO!!!
     int coordX;
     int coordY;
+
     while (true) {
         system("cls");
         print_matrix((int*)tablero_host, filas, columnas);
@@ -230,13 +227,13 @@ int main(int argc, char** argv) {
 
 
     }
-
-
-
+    
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);          //Se deben mandar los hilos equivalentes a la longitud de la fila
-    printf("\nActivacion del rompecabezas con el numero 4:\n");
-    activarRompecabezas << <blocks,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
+    printf("\nActivacion del TNT en (4,5):\n");
+    activarTNT << <blocks, threads >> > (tablero_dev, 4,5, filas, columnas);
+    //printf("\nActivacion del rompecabezas con el numero 4:\n");
+    //activarRompecabezas << <blocks,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
     //eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, 2, 2);
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
