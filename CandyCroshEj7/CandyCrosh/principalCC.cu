@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
     const int columnas = 10;
     int tiposCaramelos = 4;
     int vidas = 5;
-    int modo = 2; //1 manual, 2 automatico
+    int modo = 1; //1 manual, 2 automatico
 
     int* tablero_dev;
     int tablero_host[filas][columnas];
@@ -272,7 +272,13 @@ int main(int argc, char** argv) {
         //Intentar eliminar bloques en la posicion que se ha indicado
 
         if (tablero_host[coordY][coordX] == 10) {
-            //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);
+            int filaCol = rand() % 2;
+            if (filaCol == 1) {
+                activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
+            }
+            else if (filaCol == 0) {
+                activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
+            }
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else if (tablero_host[coordY][coordX] == 20) {
