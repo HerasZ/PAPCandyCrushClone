@@ -29,57 +29,46 @@ __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tip
 //Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
 __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coordY, int coordX) {
 
-    int tid = threadIdx.x + blockIdx.x * blockDim.x;
+    int fila = blockIdx.x;
+    int columna = threadIdx.x;
+
     int carameloElegido = tablero[coordY * nRows + coordX];
-    __shared__ int posicionesEliminadas;
 
     //Los hilos que pertenezcan a la fila de la posicion elegida ejecutan esto
-    if (tid < (nRows * nColumns) && tid == coordY) {
+    if (fila*columna < (nRows * nColumns) && fila == coordY ) {
         int start = coordX;
         int end = coordX;
 
         //Mientras haya caramelos iguales antes de nuestra posicion, llevar la posicion de la columna de inicio atras
-        while (start > 0 && tablero[tid * nRows + start - 1] == carameloElegido) start--;
+        while (start > 0 && tablero[fila * nRows + start - 1] == carameloElegido) start--;
 
         //Mientras haya caramelos iguales despues de nuestra posicion, aumentar la posicion de la columna de fin.
-        while (end < nColumns - 1 && tablero[tid * nRows + end + 1] == carameloElegido) end++;
+        while (end < nColumns - 1 && tablero[fila * nRows + end + 1] == carameloElegido) end++;
 
         //Si la diferencia entre inicio y fin es mayor que 2, borramos todos los elementos poniendo un 0
         if (end - start + 1 >= 2) {
-            for (int i = start; i <= end; i++) {
-                tablero[tid * nRows + i] = 0;
-                atomicAdd(&posicionesEliminadas, 1);
+            for (int k = start; k <= end; k++) {
+                tablero[fila * nRows + k] = 0;
             }
         }
     }
-    //Los hilos de la columna de la posicion elegida ejecutan el else:
-    else if (tid < (nRows * nColumns) && tid == coordX) {
-        int start = coordY;
-        int end = coordY;
-        //Igual que en el codigo de las filas, pero ahora vamos moviendo el inicio y final por las filas, en vez de las columnas
-        while (start > 0 && tablero[(start - 1) * nRows + tid] == carameloElegido) start--;
-        while (end < nRows - 1 && tablero[(end + 1) * nRows + tid] == carameloElegido) end++;
-        //Remplazamos con 0s igual que en la fila
-        if (end - start + 1 >= 2) {
-            for (int i = start; i <= end; i++) {
-                tablero[i * nRows + tid] = 0;
-                atomicAdd(&posicionesEliminadas, 1);
-            }
-        }
-    }
+
     __syncthreads();
 
-    if (posicionesEliminadas == 5) {
-        //El 10 es una bomba
-        tablero[coordY * nRows + coordX] = 10;
-    }
-    else if (posicionesEliminadas == 6) {
-        //El 20 es una TNT
-        tablero[coordY * nRows + coordX] = 20;
-    }
-    else if (posicionesEliminadas > 6) {
-        //El 33 es un rompecabezas
-        tablero[coordY * nRows + coordX] = 50 + carameloElegido;
+    //Los hilos de la columna de la posicion elegida ejecutan el else:
+    if (columna*fila < (nRows * nColumns) && columna == coordX) {
+        int start = coordY;
+        int end = coordY;
+
+        //Igual que en el codigo de las filas, pero ahora vamos moviendo el inicio y final por las filas, en vez de las columnas
+        while (start > 0 && tablero[(start - 1) * nRows + columna] == carameloElegido) start--;
+        while (end < nRows - 1 && tablero[(end + 1) * nRows + columna] == carameloElegido) end++;
+        //Remplazamos con 0s igual que en la fila
+        if (end - start + 1 >= 2) {
+            for (int k = start; k <= end; k++) {
+                tablero[k * nRows + columna] = 0;
+            }
+        }
     }
 }
 
@@ -233,6 +222,7 @@ int main(int argc, char** argv) {
     const int columnas = 10;
     int tiposCaramelos = 4;
     int vidas = 5;
+    int modo = 2; //1 manual, 2 automatico
 
     int* tablero_dev;
     int tablero_host[filas][columnas];
@@ -268,18 +258,50 @@ int main(int argc, char** argv) {
         print_matrix((int*)tablero_host, filas, columnas);
 
         //Pedir las coordenadas al usuario
-        coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
-        coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
-
-
+        if (modo == 1) {
+            coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
+            coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
+        }
+        else {
+            coordY = rand() % filas;
+            coordX = rand() % columnas;
+            printf("Posicion elegida aleatoriamente: Fila %d, Columna %d", coordY + 1, coordX + 1);
+            getchar();
+        }
+        
         //Intentar eliminar bloques en la posicion que se ha indicado
 
-        //TODO: Comprobar si la posicion que hemos elegido es un caramelo, rompecabezas, o distintos para ejecutar 
-        // el kernel que corresponde
-        eliminarBloques << <1, filas + columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        if (tablero_host[coordY][coordX] == 10) {
+            //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        }
+        else if (tablero_host[coordY][coordX] == 20) {
+            activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        }
+        else if (tablero_host[coordY][coordX] > 49 && tablero_host[coordY][coordX] < 57) {
+            activarRompecabezas << <blocks,threads >> > (tablero_dev, tablero_host[coordY][coordX]%10, filas, columnas);
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        }
+        else {
+            eliminarBloques << < filas, columnas>> > (tablero_dev, filas, columnas, coordY, coordX);
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+            int posiciones = posicionesEliminadas((int*)tablero_host, filas, columnas);
+            if (posiciones == 5) {
+                //El 10 es una bomba
+                tablero_host[coordY][coordX] = 10;
+            }
+            else if (posiciones == 6) {
+                //El 20 es una TNT
+                tablero_host[coordY][coordX] = 20;
+            }
+            else if (posiciones > 6) {
+                //El 5x es un rompecabezas
+                tablero_host[coordY][coordX] = 50 + tablero_host[coordY][coordX]%10;
+            }
 
-
+        }
+ 
         if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
             //Si no se ha eliminado ningun caramelo con el kernel
             vidas--;
@@ -299,33 +321,8 @@ int main(int argc, char** argv) {
         }
     }
 
-    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);          //Se deben mandar los hilos equivalentes a la longitud de la fila
-    printf("\nActivacion del TNT en (4,5):\n");
-    activarTNT << <blocks, threads >> > (tablero_dev, 4, 5, filas, columnas);
-    //printf("\nActivacion del rompecabezas con el numero 4:\n");
-    //activarRompecabezas << <blocks,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
-    //eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, 2, 2);
-    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-    printf("\n");
-    print_matrix((int*)tablero_host, filas, columnas);
-
-    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    printf("\nDejar caer bloques por la gravedad, subiendo los ceros:\n");
-    dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);     //Se deben lanzar los hilos equivalentes al número de columnas
-    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-    printf("\n");
-    print_matrix((int*)tablero_host, filas, columnas);
-
-    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    printf("\nSobrescribir los ceros del tablero por nuevos numeros generados aleatoriamente:\n");
-    rellenarTablero << <1, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);     //Se deben lanzar los hilos equivalentes al número de columnas
-    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-    printf("\n");
-    print_matrix((int*)tablero_host, filas, columnas);
-
-
     cudaFree(tablero_dev);
+    cudaFree(state);
 
     return 0;
 }
