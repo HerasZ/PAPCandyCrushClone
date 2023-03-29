@@ -16,12 +16,13 @@ int** tablero;
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
 __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state) {
 
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int i = threadIdx.y * nColumnas + threadIdx.x;
     //Iniciar el generador aleatorio
-    curand_init(3456, j, 0, &state[j]);
-    if (j < nColumnas && i < nFilas && tablero[i * nColumnas + j] == 0) {
-        tablero[i * nColumnas + j] = (curand(&state[i * nColumnas + j]) % tiposN + 1);
+    curand_init(3456, i, 0, &state[i]);
+    for (int rellenarColumna = 0; rellenarColumna < nColumnas;++rellenarColumna) {
+        if (i < nFilas*nColumnas && tablero[i] == 0) {        
+            tablero[i] = (curand(&state[i]) % tiposN + 1);
+        }
     }
 }
 
@@ -111,18 +112,21 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
 }
 
 //Eliminar todas las apariciones de un color de caramelo (que corresponde a un número entre 1-6) en el tablero:
-__global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
-    int i = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas) {
+    int idx = threadIdx.x;
 
-    //Comprobamos que el índice se encuentre dentro de los límites de la matriz
-    if (i < nFilas * nColumnas) {
-        //En caso de que la posición analizada sea igual al bloque que se quiere eliminar, se sobrescribe a 0
-        if (tablero[i] == colorBloqueEliminar) {
-            tablero[i] = 0;
+    //Iteramos sobre cada elemento del tablero, avanzando un número de hilos igual al número total de hilos
+    for (int i = idx; i < nFilas * nColumnas; i += blockDim.x) {
+        //Comprobamos que el índice se encuentre dentro de los límites de la matriz
+        if (i < nFilas * nColumnas) {
+            //En caso de que la posición analizada sea igual al bloque que se quiere eliminar, se sobrescribe a 0
+            if (tablero[i] == colorBloqueEliminar) {
+                tablero[i] = 0;
+            }
         }
     }
-
 }
+
 
 //Eliminar todos los bloques en un radio de 4 elementos obteniendo como centro la posición indicada en las coordenadas ('posXActivar', 'posYActivar'):
 __global__ void activarTNT(int* tablero, int posXActivar, int posYActivar, int nFilas, int nColumnas) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
@@ -146,7 +150,6 @@ __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
 
     int i = threadIdx.x; // calcula el índice correspondiente en la matriz
     int posColumna = i % nColumnas;
-    int sigPosColumna = (i % nColumnas) + nColumnas;
 
     //Se recorre la columna en busca de algún 0:
     for (int lugarColumna = 0; lugarColumna < nFilas; ++lugarColumna) {
@@ -198,6 +201,7 @@ int posicionesEliminadas(int* mtx, int m, int n) {
 
 //Impresión de la matriz por pantalla:
 void print_matrix(int* mtx, int m, int n) {
+    printf("\n");
     int valorCelda;
     for (int i = 0; i < m; i++) {
         printf("\t");
@@ -205,27 +209,28 @@ void print_matrix(int* mtx, int m, int n) {
             valorCelda = mtx[i * n + j];
             if (valorCelda == 0) {
                 //Si el valor es 0 (elemento borrado) no imprimimos nada
-                printf("  ");
+                printf("   ");
             }
             else if (valorCelda == 10) {
                 //La bomba se representa con B al imprimir
-                printf("B ");
+                printf(" B ");
             }
             else if (valorCelda == 20) {
                 //La TNT se representa con T al imprimir
-                printf("T ");
+                printf(" T ");
             }
             else if (valorCelda > 49 && valorCelda < 57) {
                 //El rompecabezas se representa con Rx al imprimir
-                printf("R%d", (valorCelda % 10));
+                printf("R%d ", (valorCelda % 10));
             }
             else {
                 //Imprimimos el valor del caramelo
-                printf("%d ", valorCelda);
+                printf(" %d ", valorCelda);
             }
         }
         printf("\n");
     }
+    printf("\n");
 }
 
 int main(int argc, char** argv) {
@@ -251,19 +256,25 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&tablero_dev, filas * columnas * sizeof(int));
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    dim3 blocks(filas, columnas);
+    dim3 block(1, 1);
     dim3 threads(filas, columnas);
-    printf("\nGeneracion inicial del tablero:\n");
+    //printf("\nGeneracion inicial del tablero:\n");
 
 
     //BUCLE DEL JUEGO!!!
     int coordX;
     int coordY;
 
+    
+    
     while (vidas > 0) {
-        //Al empezar cada ronda, rellenar el tablero con caramelos
         system("cls");
-        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+        printf("\n \t\tCUNDY CROSH SOGA\n");
+        printf("----------------------------------------------------------------\n");
+        printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+        printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+        //Al empezar cada ronda, rellenar el tablero con caramelos
+        rellenarTablero<<<block,threads>>>(tablero_dev, filas, columnas, tiposCaramelos, state);
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         print_matrix((int*)tablero_host, filas, columnas);
 
@@ -271,14 +282,12 @@ int main(int argc, char** argv) {
         coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
         coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
 
-
         //Intentar eliminar bloques en la posicion que se ha indicado
 
         //TODO: Comprobar si la posicion que hemos elegido es un caramelo, rompecabezas, o distintos para ejecutar 
         // el kernel que corresponde
-        eliminarBloques << <1, filas + columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
+        eliminarBloques << <block, filas + columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-
 
         if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
             //Si no se ha eliminado ningun caramelo con el kernel
@@ -287,39 +296,67 @@ int main(int argc, char** argv) {
             getchar();
         }
         else {
-            //Cuando si se ha modificado el tablero
+            //Cuando se ha modificado el tablero
             system("cls");
+            printf("\n \t\tCUNDY CROSH SOGA\n");
+            printf("----------------------------------------------------------------\n");
+            printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+            printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
             print_matrix((int*)tablero_host, filas, columnas);
             getchar();
             system("cls");
-            dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);
+            system("cls");
+            printf("\n \t\tCUNDY CROSH SOGA\n");
+            printf("----------------------------------------------------------------\n");
+            printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+            printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+            dejarCaerBloques << <block, columnas >> > (tablero_dev, filas, columnas);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             print_matrix((int*)tablero_host, filas, columnas);
             getchar();
         }
+        //QUITAR EN EL COMMIT
     }
 
+    printf("\n\tGAME OVER X_X\n");
+    printf("\n\tGracias por jugar!\n");
+    printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
+
+    printf("\n\n-------------------------------------------------------\n\n");
+    
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+
     //activarBomba << <blocks, threads >> > (tablero_dev, 2, 1, filas, columnas);          //Se deben mandar los hilos equivalentes a la longitud de la fila
     printf("\nActivacion del TNT en (4,5):\n");
-    activarTNT << <blocks, threads >> > (tablero_dev, 4, 5, filas, columnas);
-    //printf("\nActivacion del rompecabezas con el numero 4:\n");
-    //activarRompecabezas << <blocks,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
-    //eliminarBloques << <1, filas*columnas >> > (tablero_dev, filas, 2, 2);
+    //activarTNT << <block, threads >> > (tablero_dev, 4, 5, filas, columnas);
+    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+    printf("\n");
+    print_matrix((int*)tablero_host, filas, columnas);
+
+    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+    printf("\nActivacion del rompecabezas con el numero 4:\n");
+    //activarRompecabezas << <block,threads >> > (tablero_dev, 4, filas, columnas);     //Se deben lanzar los hilos equivalentes al tamaño de la matriz
+    cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+    printf("\n");
+    print_matrix((int*)tablero_host, filas, columnas);
+
+    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+    printf("\nProbar 'eliminarBloques':\n");
+    eliminarBloques << <block, filas*columnas >> > (tablero_dev, filas, 3,2, 2);
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     printf("\nDejar caer bloques por la gravedad, subiendo los ceros:\n");
-    dejarCaerBloques << <1, columnas >> > (tablero_dev, filas, columnas);     //Se deben lanzar los hilos equivalentes al número de columnas
+    dejarCaerBloques << <block, columnas >> > (tablero_dev, filas, columnas);     //Se deben lanzar los hilos equivalentes al número de columnas
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
     printf("\nSobrescribir los ceros del tablero por nuevos numeros generados aleatoriamente:\n");
-    rellenarTablero << <1, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);     //Se deben lanzar los hilos equivalentes al número de columnas
+    rellenarTablero << <block, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);     //Se deben lanzar los hilos equivalentes al número de columnas
     cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
     printf("\n");
     print_matrix((int*)tablero_host, filas, columnas);
