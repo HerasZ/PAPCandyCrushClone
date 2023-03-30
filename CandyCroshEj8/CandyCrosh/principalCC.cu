@@ -288,8 +288,13 @@ int main(int argc, char** argv) {
 		printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
 		printf("\nANTES DE COMENZAR A JUGAR SELECCIONA, SELECCIONA LOS PARAMETROS DEL JUEGO :)\n");
 		modo = validate_input("\nEl juego cuenta con 2 modos de ejecucion: \n1.- Manual \n2.- Automatico\n Elige una:");
-		tiposCaramelos = validate_input("\nAhora, elige cuantos caramelos se usaran en el tablero:");
-		filas = validate_input("\nIntroduce el numero de filas del tablero de juego: ");
+		int dificultad = validate_input("\nAhora, elige la dificultad: \n1.- Dificil (6 tipos de caramelos) \n2.- Facil (4 tipos de caramelos\n Elige una:");
+		if (dificultad == 1) {
+			tiposCaramelos = 6;
+		}
+		else if (dificultad == 2) {
+			tiposCaramelos = 4;
+		}		filas = validate_input("\nIntroduce el numero de filas del tablero de juego: ");
 		columnas = validate_input("\nFinalmente, introduce el numero de columnas del tablero de juego: ");
 	}
 	int vidas = 5;
@@ -327,6 +332,7 @@ int main(int argc, char** argv) {
 	//BUCLE DEL JUEGO!!!
 	int coordX;
 	int coordY;
+	int puntos = 0;
 
 
 	while (vidas > 0) {
@@ -338,6 +344,7 @@ int main(int argc, char** argv) {
 		printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
 		rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state, time(NULL));
 		cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+		printf("\n\t\tSCORE %d\n", puntos);
 		print_matrix((int*)tablero_host, filas, columnas);
 		printf("\t\tVidas restantes: %d\n\n", vidas);
 
@@ -379,7 +386,8 @@ int main(int argc, char** argv) {
 
 		cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 
-		if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
+		int caramelosElim = posicionesEliminadas((int*)tablero_host, filas, columnas);
+		if (caramelosElim == 0) {
 			//Si no se ha eliminado ningun caramelo con el kernel
 			vidas--;
 			printf("\nPosicion mala: te quedan %d vidas\n", vidas);
@@ -387,11 +395,13 @@ int main(int argc, char** argv) {
 		}
 		else {
 			//Cuando si se ha modificado el tablero
+			puntos += caramelosElim * 10;
 			system("cls");
 			printf("\n \t\tCUNDY CROSH SOGA\n");
 			printf("----------------------------------------------------------------\n");
 			printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
 			printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+			printf("\n\t\tSCORE %d\n", puntos);
 			print_matrix((int*)tablero_host, filas, columnas);
 			printf("\t\tVidas restantes: %d\n\n", vidas);
 			getchar();
@@ -402,6 +412,7 @@ int main(int argc, char** argv) {
 			printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
 			dejarCaerBloques << <filas, columnas >> > (tablero_dev, filas, columnas);
 			cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+			printf("\n\t\tSCORE %d\n", puntos);
 			print_matrix((int*)tablero_host, filas, columnas);
 			printf("\t\tVidas restantes: %d\n\n", vidas);
 			getchar();
