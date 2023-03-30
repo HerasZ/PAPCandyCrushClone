@@ -201,7 +201,6 @@ int posicionesEliminadas(int* mtx, int m, int n) {
             if (mtx[i * n + j] == 0) {
                 veces++;
             }
-
         }
     }
     return veces;
@@ -234,7 +233,25 @@ void print_matrix(int* mtx, int m, int n) {
             }
             else {
                 //Imprimimos el valor del caramelo
-                printf(" %d ", valorCelda);
+                if (valorCelda == 1) {
+                    //Imprimimos el valor del caramelo
+                    printf(" \033[0;36m%d\033[0m ", valorCelda);
+                }
+                else if (valorCelda == 2) {
+                    printf(" \033[0;31m%d\033[0m ", valorCelda);
+                }
+                else if (valorCelda == 3) {
+                    printf(" \033[0;33m%d\033[0m ", valorCelda);
+                }
+                else if (valorCelda == 4) {
+                    printf(" \033[0;32m%d\033[0m ", valorCelda);
+                }
+                else if (valorCelda == 5) {
+                    printf(" \x1b[38;5;130m%d\x1b[0m ", valorCelda);
+                }
+                else if (valorCelda == 6) {
+                    printf(" \x1b[38;5;226m%d\x1b[0m ", valorCelda);
+                }
             }
         }
         printf("\n");
@@ -310,8 +327,6 @@ int main(int argc, char** argv) {
     
     dim3 blocks(nBloques, nBloques);
     dim3 threads(filas,columnas);
-    printf("\nGeneracion inicial del tablero:\n");
-
 
     //BUCLE DEL JUEGO!!!
     int coordX;
@@ -328,7 +343,7 @@ int main(int argc, char** argv) {
         rellenarTablero << < blocks, threads>> > (tablero_dev, filas, columnas, tiposCaramelos, state, time(NULL));
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         print_matrix(tablero_host, filas, columnas);
-        printf("\t\tVidas restantes: %d\n\n", vidas);
+        printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
 
         //Pedir las coordenadas al usuario
         if (modo == 1) {
@@ -382,7 +397,7 @@ int main(int argc, char** argv) {
             printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
             printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
             print_matrix((int*)tablero_host, filas, columnas);
-            printf("\t\tVidas restantes: %d\n\n", vidas);
+            printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
             getchar();
             system("cls");
             printf("\n \t\tCUNDY CROSH SOGA\n");
@@ -392,7 +407,7 @@ int main(int argc, char** argv) {
             dejarCaerBloques << <filas, columnas >> > (tablero_dev, filas, columnas);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             print_matrix((int*)tablero_host, filas, columnas);
-            printf("\t\tVidas restantes: %d\n\n", vidas);
+            printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
             getchar();
         }
     }
