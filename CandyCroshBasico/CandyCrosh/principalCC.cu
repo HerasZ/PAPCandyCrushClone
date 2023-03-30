@@ -235,7 +235,25 @@ void print_matrix(int* mtx, int m, int n) {
 			}
 			else {
 				//Imprimimos el valor del caramelo
-				printf(" %d ", valorCelda);
+				if (valorCelda == 1) {
+					//Imprimimos el valor del caramelo
+					printf(" \033[0;36m%d\033[0m ", valorCelda);
+				}
+				else if (valorCelda == 2) {
+					printf(" \033[0;31m%d\033[0m ", valorCelda);
+				}
+				else if (valorCelda == 3) {
+					printf(" \033[0;33m%d\033[0m ", valorCelda);
+				}
+				else if (valorCelda == 4) {
+					printf(" \033[0;32m%d\033[0m ", valorCelda);
+				}
+				else if (valorCelda == 5) {
+					printf(" \x1b[38;5;130m%d\x1b[0m ", valorCelda);
+				}
+				else if (valorCelda == 6) {
+					printf(" \x1b[38;5;226m%d\x1b[0m ", valorCelda);
+				}
 			}
 		}
 		printf("\n");
@@ -313,7 +331,6 @@ int main(int argc, char** argv) {
 	dim3 block(1);
 	dim3 threads(filas, columnas);
 
-
 	//BUCLE DEL JUEGO!!!
 	int coordX;
 	int coordY;
@@ -330,8 +347,7 @@ int main(int argc, char** argv) {
 		cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 		printf("\n\t\tSCORE %d\n", puntos);
 		print_matrix((int*)tablero_host, filas, columnas);
-		printf("\t\tVidas restantes: %d\n\n", vidas);
-		
+		printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
 
 		//Pedir las coordenadas al usuario
 		if (modo == 1) {
@@ -386,7 +402,7 @@ int main(int argc, char** argv) {
 			printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
 			printf("\n\t\tSCORE %d\n", puntos);
 			print_matrix((int*)tablero_host, filas, columnas);
-			printf("\t\tVidas restantes: %d\n\n", vidas);
+			printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
 			getchar();
 			system("cls");
 			printf("\n \t\tCUNDY CROSH SOGA\n");
@@ -397,12 +413,13 @@ int main(int argc, char** argv) {
 			cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 			printf("\n\t\tSCORE %d\n", puntos);
 			print_matrix((int*)tablero_host, filas, columnas);
-			printf("\t\tVidas restantes: %d\n\n", vidas);
+			printf("\t\tVidas restantes: \033[0;31m%d\033[0m\n\n", vidas);
 			getchar();
 		}
 	}
 
 	printf("\n\tGAME OVER :v\n");
+	printf("\n\tSCORE FINAL: %d\n", puntos);
 	printf("\n\tGracias por jugar!\n");
 	printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
 	printf("\n\n-------------------------------------------------------\n\n");

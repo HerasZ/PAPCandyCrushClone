@@ -423,6 +423,7 @@ int main(int argc, char** argv) {
     }
 
     printf("\n\tGAME OVER :v\n");
+    printf("\n\tSCORE FINAL: %d\n", puntos);
     printf("\n\tGracias por jugar!\n");
     printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
     printf("\n\n-------------------------------------------------------\n\n");
