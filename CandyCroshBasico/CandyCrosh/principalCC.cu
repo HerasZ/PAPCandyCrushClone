@@ -362,7 +362,7 @@ int main(int argc, char** argv) {
 		}
 
 		//Intentar eliminar bloques en la posicion que se ha indicado
-		int valor = tablero_host[coordY * filas + coordX];
+		int valor = tablero_host[coordY * columnas + coordX];
 		if (tablero_host[coordY * filas + coordX] == 10) {
 			int filaCol = rand() % 2;
 			if (filaCol == 1) {
@@ -372,10 +372,10 @@ int main(int argc, char** argv) {
 				activarBomba << <block, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
 			}
 		}
-		else if (tablero_host[coordY * filas + coordX] == 20) {
+		else if (tablero_host[coordY * columnas + coordX] == 20) {
 			activarTNT << <block, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
 		}
-		else if (tablero_host[coordY * filas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
+		else if (tablero_host[coordY * columnas + coordX] > 49 && tablero_host[coordY * columnas + coordX] < 57) {
 			activarRompecabezas << <block, threads >> > (tablero_dev, tablero_host[coordY * filas + coordX] % 10, filas, columnas, coordX, coordY);
 		}
 		else {
