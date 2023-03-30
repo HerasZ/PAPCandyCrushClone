@@ -189,7 +189,7 @@ int validate_input(const char* prompt) {
 	printf("%s", prompt);
 	while (scanf("%d%c", &num, &c) != 2 || c != '\n') {
 		while (getchar() != '\n');
-		printf("Invalid input. %s", prompt);
+		printf("Input no aceptado. %s", prompt);
 	}
 
 	return num;
