@@ -397,8 +397,8 @@ int main(int argc, char** argv) {
 		else if (tablero_host[coordY * columnas + coordX] == 20) {
 			activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
 		}
-		else if (tablero_host[coordY * columnas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
-			activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY * filas + coordX] % 10, filas, columnas, coordX, coordY);
+		else if (tablero_host[coordY * columnas + coordX] > 49 && tablero_host[coordY * columnas + coordX] < 57) {
+			activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY * columnas + coordX] % 10, filas, columnas, coordX, coordY);
 		}
 		else {
 
