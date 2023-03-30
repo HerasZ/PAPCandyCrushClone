@@ -16,11 +16,11 @@ int** tablero;
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
 __global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state) {
 
-    int j = blockIdx.x * blockDim.x + threadIdx.x;
-    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
     //Iniciar el generador aleatorio
-    curand_init(3456, j, 0, &state[j]);
     if (j < nColumnas && i < nFilas && tablero[i * nColumnas + j] == 0) {
+        curand_init(3456, i * nColumnas + j, 0, &state[i * nColumnas + j]);
         tablero[i * nColumnas + j] = (curand(&state[i * nColumnas + j]) % tiposN + 1);
     }
 }
@@ -31,48 +31,48 @@ __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coord
 
     __shared__ int matrizCompartida[10][10];
 
-    int fila = blockIdx.x * blockDim.x + threadIdx.x;
-    int columna = blockIdx.y * blockDim.y + threadIdx.y;
+    int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
 
-    if (fila < nColumns && columna < nRows) {
-        matrizCompartida[fila][columna] = tablero[fila * nRows + columna];
+    if (i < nRows && j < nColumns) {
+        matrizCompartida[i][j] = tablero[i * nColumns + j];
     }
 
     __syncthreads();
 
-    int carameloElegido = tablero[coordY * nRows + coordX];
+    int carameloElegido = tablero[coordY * nColumns + coordX];
 
     //Los hilos que pertenezcan a la fila de la posicion elegida ejecutan esto
-    if (fila < nColumns && columna < nRows && fila == coordY) {
+    if (i < nRows && j < nColumns && i == coordY) {
         int start = coordX;
         int end = coordX;
 
         //Mientras haya caramelos iguales antes de nuestra posicion, llevar la posicion de la columna de inicio atras
-        while (start > 0 && matrizCompartida[fila][start-1] == carameloElegido) start--;
+        while (start > 0 && matrizCompartida[i][start-1] == carameloElegido) start--;
 
         //Mientras haya caramelos iguales despues de nuestra posicion, aumentar la posicion de la columna de fin.
-        while (end < nColumns - 1 && matrizCompartida[fila][end + 1] == carameloElegido) end++;
+        while (end < nColumns - 1 && matrizCompartida[i][end + 1] == carameloElegido) end++;
 
         //Si la diferencia entre inicio y fin es mayor que 2, borramos todos los elementos poniendo un 0
         if (end - start + 1 >= 2) {
             for (int k = start; k <= end; k++) {
-                tablero[fila * nRows + k] = 0;
+                tablero[i * nColumns + k] = 0;
             }
         }
     }
 
     //Los hilos de la columna de la posicion elegida ejecutan el else:
-    if (fila < nColumns && columna < nRows && columna == coordX) {
+    if (i < nRows && j < nColumns && j == coordX) {
         int start = coordY;
         int end = coordY;
 
         //Igual que en el codigo de las filas, pero ahora vamos moviendo el inicio y final por las filas, en vez de las columnas
-        while (start > 0 && matrizCompartida[start - 1][columna] == carameloElegido) start--;
-        while (end < nRows - 1 && matrizCompartida[end + 1][columna] == carameloElegido) end++;
+        while (start > 0 && matrizCompartida[start - 1][j] == carameloElegido) start--;
+        while (end < nRows - 1 && matrizCompartida[end + 1][j] == carameloElegido) end++;
         //Remplazamos con 0s igual que en la fila
         if (end - start + 1 >= 2) {
             for (int k = start; k <= end; k++) {
-                tablero[k * nRows + columna] = 0;
+                tablero[k * nColumns + j] = 0;
             }
         }
     }
@@ -113,11 +113,11 @@ __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int n
     //Comprobamos que el índice se encuentre dentro de los límites de la matriz
     if (i*j < nFilas * nColumnas) {
         //En caso de que la posición analizada sea igual al bloque que se quiere eliminar, se sobrescribe a 0
-        if (tablero[i * nFilas + j] == colorBloqueEliminar) {
-            tablero[i * nFilas + j] = 0;
+        if (tablero[i * nColumnas + j] == colorBloqueEliminar) {
+            tablero[i * nColumnas + j] = 0;
         }
     }
-    tablero[coordY * nFilas + coordX] = 0;
+    tablero[coordY * nColumnas + coordX] = 0;
 
 }
 
@@ -166,21 +166,21 @@ __global__ void ponerPowerup(int* tablero, int nFilas, int nColumnas, int coordY
     int fila = blockIdx.x;
     int columna = threadIdx.x;
     posicionesCero = 0;
-    if (tablero[fila * nFilas + columna] == 0) {
+    if (tablero[fila * nColumnas + columna] == 0) {
         atomicAdd(&posicionesCero, 1);
     }
     __syncthreads();
     if (posicionesCero == 5) {
         //El 10 es una bomba
-        tablero[coordY * nFilas + coordX] = 10;
+        tablero[coordY * nColumnas + coordX] = 10;
     }
     else if (posicionesCero == 6) {
         //El 20 es una TNT
-        tablero[coordY * nFilas + coordX] = 20;
+        tablero[coordY * nColumnas + coordX] = 20;
     }
     else if (posicionesCero > 6) {
         //El 5x es un rompecabezas
-        tablero[coordY * nFilas + coordX] = 50 + carameloEnPos % 10;
+        tablero[coordY * nColumnas + coordX] = 50 + carameloEnPos % 10;
     }
 }
 
@@ -281,7 +281,7 @@ int main(int argc, char** argv) {
         //Llenar de 0 la matriz inicial
         for (int i = 0; i < filas; i++) {
             for (int j = 0; j < columnas; j++) {
-                tablero_host[i * filas + j] = 0;
+                tablero_host[i * columnas + j] = 0;
             }
         }
 
