@@ -73,12 +73,12 @@ __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coord
 
 //Eliminar el número de la fila o columna indicada por 'posActivar'. Si 'filaColumna' es True, entonces borra la fila, si es False, borra la columna:
 __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int nFilas, int nColumnas) {
-    int x = threadIdx.x;
-    //    int i = blockIdx.y * blockDim.y + threadIdx.y;
+    int fila = blockIdx.x;
+    int columna = threadIdx.x;
     if (filaColumna) {
         if (posActivar < nFilas) {
-            if (x < nFilas) {
-                tablero[posActivar * nColumnas + x] = 0;
+            if (columna < nFilas) {
+                tablero[posActivar * nColumnas + columna] = 0;
             }
         }
         else {
@@ -88,8 +88,8 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
     }
     else {
         if (posActivar < nColumnas) {
-            if (x < nColumnas) {
-                tablero[x * nColumnas + posActivar] = 0;
+            if (fila < nColumnas) {
+                tablero[fila * nColumnas + posActivar] = 0;
             }
         }
         else {
@@ -314,6 +314,7 @@ int main(int argc, char** argv) {
         }
     }
 
+
     curandState* state;
 
     //Dar memoria a la matriz y el generador aleatorio en la GPU
@@ -363,10 +364,10 @@ int main(int argc, char** argv) {
             getchar();
         }
 
-        int valor = tablero_host[coordY * filas + coordX];
+        int valor = tablero_host[coordY * columnas + coordX];
 
         //Intentar eliminar bloques en la posicion que se ha indicado
-        if (tablero_host[coordY * filas + coordX] == 10) {
+        if (tablero_host[coordY * columnas + coordX] == 10) {
             bool filaCol = rand() % 2;
             if (filaCol) {
                 activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
@@ -375,10 +376,10 @@ int main(int argc, char** argv) {
                 activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
             }
         }
-        else if (tablero_host[coordY * filas + coordX] == 20) {
+        else if (tablero_host[coordY * columnas + coordX] == 20) {
             activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
         }
-        else if (tablero_host[coordY * filas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
+        else if (tablero_host[coordY * columnas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
             activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY * filas + coordX] % 10, filas, columnas, coordX, coordY);
         }
         else {

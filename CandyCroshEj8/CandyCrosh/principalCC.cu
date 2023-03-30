@@ -86,12 +86,12 @@ __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coord
 
 //Eliminar el número de la fila o columna indicada por 'posActivar'. Si 'filaColumna' es True, entonces borra la fila, si es False, borra la columna:
 __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int nFilas, int nColumnas) {
-	int x = threadIdx.x;
-	//    int i = blockIdx.y * blockDim.y + threadIdx.y;
+	int fila = blockIdx.x;
+	int columna = threadIdx.x;
 	if (filaColumna) {
 		if (posActivar < nFilas) {
-			if (x < nFilas) {
-				tablero[posActivar * nColumnas + x] = 0;
+			if (columna < nFilas) {
+				tablero[posActivar * nColumnas + columna] = 0;
 			}
 		}
 		else {
@@ -101,8 +101,8 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
 	}
 	else {
 		if (posActivar < nColumnas) {
-			if (x < nColumnas) {
-				tablero[x * nColumnas + posActivar] = 0;
+			if (fila < nColumnas) {
+				tablero[fila * nColumnas + posActivar] = 0;
 			}
 		}
 		else {
@@ -337,34 +337,17 @@ int main(int argc, char** argv) {
 
 	cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
 
-	cudaDeviceProp propiedades;
-	cudaGetDeviceProperties(&propiedades, 0);
+	//Calcular número de bloques que se deben asignar, dependiendo de la GPU del usuario:
+	cudaDeviceProp propiedades;     //Creamos la variable que nos permite acceder a las propiedades de nuestro dispositivo
+	cudaGetDeviceProperties(&propiedades, 0);       //Lo inicializamos, indicando que es el dispositivo local al que debe acceder
 
-	// Calculamos el número de hilos por bloque
-	int hilosX = min(columnas, propiedades.maxThreadsPerMultiProcessor);
-	int hilosY = min(filas, propiedades.maxThreadsPerMultiProcessor);
+	int maxBloquesUsuario = propiedades.maxBlocksPerMultiProcessor;
+	int nHilos = filas * columnas;                                  //Número de hilos máximos que necesitaremos por bloque
+	int nBloques = ceil(propiedades.maxThreadsPerBlock / nHilos);     //Número de bloques que necesitaremos para la ejecución
 
-	// Calculamos el número de bloques por dimensión
-	int bloquesX = ceil(columnas / hilosX);
-	int bloquesY = ceil(filas / hilosY);
 
-	// Limitamos el número de bloques a lanzar por multiprocesador
-	int bloques_por_sm = propiedades.maxBlocksPerMultiProcessor / (bloquesX * bloquesY);
-
-	// Calculamos el número de bloques a lanzar
-	int num_bloques = bloquesX * bloquesY;
-	if (hilosX * hilosY > propiedades.maxThreadsPerMultiProcessor) {
-		//Comparar entre multiplicacion de bloquesX y bloquesY y max. bloques de la grafica
-		num_bloques = min(num_bloques, bloques_por_sm * propiedades.multiProcessorCount);
-		//Comparar entre filas/columnas y max. hilos entre valor anterior
-		hilosY = min(filas, propiedades.maxThreadsPerMultiProcessor / hilosY);
-		hilosX = min(columnas, propiedades.maxThreadsPerMultiProcessor / hilosX);
-		bloquesX = ceil(columnas / hilosX);
-		bloquesY = ceil(filas / hilosY);
-	}
-
-	dim3 blocks(bloquesX, bloquesY);
-	dim3 threads(hilosX, hilosY);
+	dim3 blocks(nBloques, nBloques);
+	dim3 threads(filas, columnas);
 
 
 
@@ -399,10 +382,10 @@ int main(int argc, char** argv) {
 			getchar();
 		}
 
-		int valor = tablero_host[coordY * filas + coordX];
+		int valor = tablero_host[coordY * columnas + coordX];
 
 		//Intentar eliminar bloques en la posicion que se ha indicado
-		if (tablero_host[coordY * filas + coordX] == 10) {
+		if (tablero_host[coordY * columnas + coordX] == 10) {
 			bool filaCol = rand() % 2;
 			if (filaCol) {
 				activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
@@ -411,10 +394,10 @@ int main(int argc, char** argv) {
 				activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
 			}
 		}
-		else if (tablero_host[coordY * filas + coordX] == 20) {
+		else if (tablero_host[coordY * columnas + coordX] == 20) {
 			activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
 		}
-		else if (tablero_host[coordY * filas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
+		else if (tablero_host[coordY * columnas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
 			activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY * filas + coordX] % 10, filas, columnas, coordX, coordY);
 		}
 		else {
