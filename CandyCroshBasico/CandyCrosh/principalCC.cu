@@ -14,13 +14,13 @@ int** tablero;
 //Funciones:
 
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
-__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state) {
+__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state, int seed) {
 
 	int row = threadIdx.x;
 	int column = threadIdx.y;
 
 	//Iniciar el generador aleatorio
-	curand_init(3457, row * nColumnas + column, 0, &state[row * nColumnas + column]);
+	curand_init(seed, row * nColumnas + column, 0, &state[row * nColumnas + column]);
 	for (int rellenarColumna = 0; rellenarColumna < nColumnas; ++rellenarColumna) {
 		if (column < nColumnas && row < nFilas && tablero[row * nColumnas + column] == 0) {
 			tablero[row * nColumnas + column] = (curand(&state[row * nColumnas + column]) % tiposN + 1);
@@ -270,10 +270,15 @@ int main(int argc, char** argv) {
 		columnas = atoi(argv[4]);
 	}
 	else {
-		modo = validate_input("Introduce 1 para modo manual, 2 para modo automatico: ");
-		tiposCaramelos = validate_input("Introduce el numero de tipos de caramelos: ");
-		filas = validate_input("Introduce el numero de filas del tablero de juego: ");
-		columnas = validate_input("Introduce el numero de columnas del tablero de juego: ");
+		printf("\n \t\tBIENVENIDO A CUNDY CROSH SOGA! \n");
+		printf("----------------------------------------------------------------\n");
+		printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+		printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+		printf("\nANTES DE COMENZAR A JUGAR SELECCIONA, SELECCIONA LOS PARAMETROS DEL JUEGO :)\n");
+		modo = validate_input("\nEl juego cuenta con 2 modos de ejecucion: \n1.- Manual \n2.- Automatico\n Elige una:");
+		tiposCaramelos = validate_input("\nAhora, elige cuantos caramelos se usaran en el tablero:");
+		filas = validate_input("\nIntroduce el numero de filas del tablero de juego: ");
+		columnas = validate_input("\nFinalmente, introduce el numero de columnas del tablero de juego: ");
 	}
 
 
@@ -298,9 +303,9 @@ int main(int argc, char** argv) {
 	cudaMalloc((void**)&tablero_dev, filas * columnas * sizeof(int));
 
 	cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-	dim3 block(1, 1);
+
+	dim3 block(1);
 	dim3 threads(filas, columnas);
-	//printf("\nGeneracion inicial del tablero:\n");
 
 
 	//BUCLE DEL JUEGO!!!
@@ -310,11 +315,11 @@ int main(int argc, char** argv) {
 	while (vidas > 0) {
 		//Al empezar cada ronda, rellenar el tablero con caramelos
 		system("cls");
-		printf("\n \t\tCUNDY CROSH SOGA\n");
+		printf("\n \t\tCUNDY CROSH SOGA \n");		
 		printf("----------------------------------------------------------------\n");
 		printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
 		printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-		rellenarTablero << < block, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+		rellenarTablero << < block, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state, time(NULL));
 		cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 		print_matrix((int*)tablero_host, filas, columnas);
 		printf("\t\tVidas restantes: %d\n\n", vidas);
