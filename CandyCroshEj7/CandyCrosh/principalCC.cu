@@ -134,23 +134,22 @@ __global__ void activarTNT(int* tablero, int posXActivar, int posYActivar, int n
 //Sobreescribir bloques con valor 0 con el valor de los bloques que se encuentren arriba de este. En caso de no tener bloques por encima, se generarán nuevos bloques:
 __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
 
-    int i = threadIdx.x + blockIdx.x * blockDim.x; // nuevo índice que tiene en cuenta el número de hilos por bloque y bloques
-    int posColumna = i % nColumnas;
+    // nuevo índice que tiene en cuenta el número de hilos por bloque y bloques
+    int i = blockIdx.x;
+    int posColumna = threadIdx.x;
 
-    if (i<nFilas*nColumnas) {
+    if (i*posColumna < nFilas*nColumnas) {
         //Se recorre la columna en busca de algún 0:
         for (int lugarColumna = 0; lugarColumna < nFilas; ++lugarColumna) {
             if (tablero[posColumna + (nColumnas * lugarColumna)] == 0) {
                 int posicionBloqueCero = posColumna + (nColumnas * lugarColumna);
                 //En caso de encontrar un 0, vamos a iterar hasta que se encuentre en la primera fila de la matriz:
-                while ((posicionBloqueCero / nColumnas) > 0) {
+                while ((posicionBloqueCero) >= posColumna) {
                     //printf("\nHilo %d Cambia su posicion %d por %d\n", i, tablero[posicionBloqueCero], tablero[posicionBloqueCero - nColumnas]);
                     tablero[posicionBloqueCero] = tablero[posicionBloqueCero - nColumnas];
                     tablero[posicionBloqueCero - nColumnas] = 0;
                     posicionBloqueCero -= nColumnas;
                 }
-                //Escribimos un 0 en la primera fila de la matriz:
-                tablero[posicionBloqueCero] = 0;
             }
         }
     }
@@ -354,7 +353,7 @@ int main(int argc, char** argv) {
             printf("----------------------------------------------------------------\n");
             printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
             printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-            dejarCaerBloques << <blocks, columnas>> > (tablero_dev, filas, columnas);
+            dejarCaerBloques << <filas, columnas>> > (tablero_dev, filas, columnas);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             print_matrix((int*)tablero_host, filas, columnas);
             getchar();
