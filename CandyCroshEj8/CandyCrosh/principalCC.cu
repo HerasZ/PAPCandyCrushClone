@@ -14,13 +14,13 @@ int** tablero;
 //Funciones:
 
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
-__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state) {
+__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state, int seed) {
 
 	int i = blockIdx.x * blockDim.x + threadIdx.x;
 	int j = blockIdx.y * blockDim.y + threadIdx.y;
 	//Iniciar el generador aleatorio
 	if (j < nColumnas && i < nFilas && tablero[i * nColumnas + j] == 0) {
-		curand_init(3456, i * nColumnas + j, 0, &state[i * nColumnas + j]);
+		curand_init(seed, i * nColumnas + j, 0, &state[i * nColumnas + j]);
 		tablero[i * nColumnas + j] = (curand(&state[i * nColumnas + j]) % tiposN + 1);
 	}
 }
@@ -41,7 +41,6 @@ __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coord
 			filaCompartida[threadIdx.y] = tablero[i * nColumns + j];
 		}
 		if (j == coordX) {
-			printf("Posicion %d : elemento %d ,", threadIdx.x, tablero[i * nColumns + j]);
 			columnaCompartida[threadIdx.x] = tablero[i * nColumns + j];
 		}
 	}
@@ -316,7 +315,7 @@ int main(int argc, char** argv) {
 			printf("----------------------------------------------------------------\n");
 			printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
 			printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-			rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+			rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state, time(NULL));
 			cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 			print_matrix((int*)tablero_host, filas, columnas);
 			printf("\t\tVidas restantes: %d\n\n", vidas);
