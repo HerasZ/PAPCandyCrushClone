@@ -373,13 +373,13 @@ int main(int argc, char** argv) {
             }
         }
 
-
         printf("\n\tGAME OVER :v\n");
         printf("\n\tGracias por jugar!\n");
         printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
         printf("\n\n-------------------------------------------------------\n\n");
 
         cudaFree(tablero_dev);
+        cudaFree(state);
     }
     return 0;
 }
