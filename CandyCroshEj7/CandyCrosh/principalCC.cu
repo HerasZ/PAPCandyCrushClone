@@ -119,7 +119,7 @@ __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int n
 __global__ void activarTNT(int* tablero, int posXActivar, int posYActivar, int nFilas, int nColumnas) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
-    int radioExplosion = 2;     //Radio de bloques que afectará la explosión del TNT con respecto del centro, que es la posición introducida como parámetro de entrada
+    int radioExplosion = 4;     //Radio de bloques que afectará la explosión del TNT con respecto del centro, que es la posición introducida como parámetro de entrada
 
     //Comprobamos que el índice se encuentre dentro de los límites de la matriz
     if (i < nFilas * nColumnas) {
@@ -306,6 +306,7 @@ int main(int argc, char** argv) {
             rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
             print_matrix(tablero_host, filas, columnas);
+            printf("\t\tVidas restantes: %d\n\n", vidas);
 
             //Pedir las coordenadas al usuario
             if (modo == 1) {
@@ -359,6 +360,7 @@ int main(int argc, char** argv) {
                 printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
                 printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
                 print_matrix((int*)tablero_host, filas, columnas);
+                printf("\t\tVidas restantes: %d\n\n", vidas);
                 getchar();
                 system("cls");
                 printf("\n \t\tCUNDY CROSH SOGA\n");
@@ -368,11 +370,12 @@ int main(int argc, char** argv) {
                 dejarCaerBloques << <filas, columnas >> > (tablero_dev, filas, columnas);
                 cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
                 print_matrix((int*)tablero_host, filas, columnas);
+                printf("\t\tVidas restantes: %d\n\n",vidas);
                 getchar();
             }
         }
 
-        printf("\n\tGAME OVER X_X\n");
+        printf("\n\tGAME OVER :v\n");
         printf("\n\tGracias por jugar!\n");
         printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
         printf("\n\n-------------------------------------------------------\n\n");
