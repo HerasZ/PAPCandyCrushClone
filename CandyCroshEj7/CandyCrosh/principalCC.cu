@@ -102,15 +102,16 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
 //Eliminar todas las apariciones de un color de caramelo (que corresponde a un número entre 1-6) en el tablero:
 __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas, int coordX, int coordY) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
     int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     //Comprobamos que el índice se encuentre dentro de los límites de la matriz
-    if (i < nFilas * nColumnas) {
+    if (i*j < nFilas * nColumnas) {
         //En caso de que la posición analizada sea igual al bloque que se quiere eliminar, se sobrescribe a 0
-        if (tablero[i] == colorBloqueEliminar) {
-            tablero[i] = 0;
+        if (tablero[i*nFilas + j] == colorBloqueEliminar) {
+            tablero[i * nFilas + j] = 0;
         }
-        tablero[coordX * nFilas + coordY] = 0;
     }
+    tablero[coordY * nFilas + coordX] = 0;
 
 }
 
@@ -260,7 +261,13 @@ int main(int argc, char** argv) {
             tablero_host[i][j] = 0;
         }
     }
-
+    tablero_host[2][0] = 3;
+    tablero_host[2][1] = 3;
+    tablero_host[2][2] = 3;
+    tablero_host[2][3] = 3;
+    tablero_host[2][4] = 3;
+    tablero_host[2][5] = 3;
+    tablero_host[2][6] = 3;
     curandState* state;
 
     //Dar memoria a la matriz y el generador aleatorio en la GPU

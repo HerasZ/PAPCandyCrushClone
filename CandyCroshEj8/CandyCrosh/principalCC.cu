@@ -31,8 +31,8 @@ __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coord
 
     __shared__ int matrizCompartida[10][10];
 
-    int fila = blockIdx.x;
-    int columna = threadIdx.x;
+    int fila = blockIdx.x * blockDim.x + threadIdx.x;
+    int columna = blockIdx.y * blockDim.y + threadIdx.y;
 
     if (fila < nColumns && columna < nRows) {
         matrizCompartida[fila][columna] = tablero[fila * nRows + columna];
@@ -108,15 +108,16 @@ __global__ void activarBomba(int* tablero, int posActivar, bool filaColumna, int
 //Eliminar todas las apariciones de un color de caramelo (que corresponde a un número entre 1-6) en el tablero:
 __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int nFilas, int nColumnas, int coordX, int coordY) { //'nColumnas' como parámetro para asegurarse de recorrer y borrar todas las apariciones en la matriz
     int i = blockIdx.x * blockDim.x + threadIdx.x;
+    int j = blockIdx.y * blockDim.y + threadIdx.y;
 
     //Comprobamos que el índice se encuentre dentro de los límites de la matriz
-    if (i < nFilas * nColumnas) {
+    if (i*j < nFilas * nColumnas) {
         //En caso de que la posición analizada sea igual al bloque que se quiere eliminar, se sobrescribe a 0
-        if (tablero[i] == colorBloqueEliminar) {
-            tablero[i] = 0;
+        if (tablero[i * nFilas + j] == colorBloqueEliminar) {
+            tablero[i * nFilas + j] = 0;
         }
-        tablero[coordX * nFilas + coordY] = 0;
     }
+    tablero[coordY * nFilas + coordX] = 0;
 
 }
 
@@ -327,7 +328,7 @@ int main(int argc, char** argv) {
         }
         else {
             
-            eliminarBloques << < filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
+            eliminarBloques << < blocks, threads >> > (tablero_dev, filas, columnas, coordY, coordX);
             ponerPowerup << <filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX, valor);
         }
 

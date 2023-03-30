@@ -111,7 +111,7 @@ __global__ void activarRompecabezas(int* tablero, int colorBloqueEliminar, int n
             if (tablero[i] == colorBloqueEliminar) {
                 tablero[i] = 0;
             }
-            tablero[coordX * nFilas + coordY] = 0;
+            tablero[coordY * nFilas + coordX] = 0;
         }
     }
 }
