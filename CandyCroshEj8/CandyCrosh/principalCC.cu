@@ -161,6 +161,29 @@ __global__ void dejarCaerBloques(int* tablero, int nFilas, int nColumnas) {
     }
 }
 
+__device__ int posicionesCero = 0;
+__global__ void ponerPowerup(int* tablero, int nFilas, int nColumnas, int coordY, int coordX, int carameloEnPos) {
+    int fila = blockIdx.x;
+    int columna = threadIdx.x;
+    posicionesCero = 0;
+    if (tablero[fila * nFilas + columna] == 0) {
+        atomicAdd(&posicionesCero, 1);
+    }
+    __syncthreads();
+    if (posicionesCero == 5) {
+        //El 10 es una bomba
+        tablero[coordY * nFilas + coordX] = 10;
+    }
+    else if (posicionesCero == 6) {
+        //El 20 es una TNT
+        tablero[coordY * nFilas + coordX] = 20;
+    }
+    else if (posicionesCero > 6) {
+        //El 5x es un rompecabezas
+        tablero[coordY * nFilas + coordX] = 50 + carameloEnPos % 10;
+    }
+}
+
 
 //-------------------------------------------------------------------------------------------------------------------------------------
 // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
@@ -284,6 +307,8 @@ int main(int argc, char** argv) {
             getchar();
         }
 
+        int valor = tablero_host[coordY][coordX];
+
         //Intentar eliminar bloques en la posicion que se ha indicado
         if (tablero_host[coordY][coordX] == 10) {
             bool filaCol = rand() % 2;
@@ -293,36 +318,20 @@ int main(int argc, char** argv) {
             else if (filaCol) {
                 activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
             }
-            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else if (tablero_host[coordY][coordX] == 20) {
             activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
-            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else if (tablero_host[coordY][coordX] > 49 && tablero_host[coordY][coordX] < 57) {
             activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY][coordX] % 10, filas, columnas, coordX, coordY);
-            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         }
         else {
-            int valor = tablero_host[coordY][coordX];
+            
             eliminarBloques << < filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
-            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-            int posiciones = posicionesEliminadas((int*)tablero_host, filas, columnas);
-            if (posiciones == 5) {
-                //El 10 es una bomba
-                tablero_host[coordY][coordX] = 10;
-            }
-            else if (posiciones == 6) {
-                //El 20 es una TNT
-                tablero_host[coordY][coordX] = 20;
-            }
-            else if (posiciones > 6) {
-                //El 5x es un rompecabezas
-                tablero_host[coordY][coordX] = 50 + valor % 10;
-            }
-            cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-
+            ponerPowerup << <filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX, valor);
         }
+
+        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
 
         if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
             //Si no se ha eliminado ningun caramelo con el kernel
