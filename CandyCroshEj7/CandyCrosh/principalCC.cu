@@ -245,129 +245,141 @@ void print_matrix(int* mtx, int m, int n) {
 }
 
 int main(int argc, char** argv) {
-    const int filas = 10;
-    const int columnas = 10;
-    int tiposCaramelos = 4;
-    int vidas = 5;
-    int modo = 1; //1 manual, 2 automatico
+    if (argc == 5) {
 
-    int* tablero_dev;
-    int tablero_host[filas][columnas];
-
-    //Llenar de 0 la matriz inicial
-    for (int i = 0; i < filas; i++) {
-        for (int j = 0; j < columnas; j++) {
-            tablero_host[i][j] = 0;
+        int modo = 1;
+        char* primer = argv[1];
+        if (primer[1] == 'a') {
+            modo = 2;
         }
-    }
-    tablero_host[2][0] = 3;
-    tablero_host[2][1] = 3;
-    tablero_host[2][2] = 3;
-    tablero_host[2][3] = 3;
-    tablero_host[2][4] = 3;
-    tablero_host[2][5] = 3;
-    tablero_host[2][6] = 3;
-    curandState* state;
-
-    //Dar memoria a la matriz y el generador aleatorio en la GPU
-    cudaMalloc((void**)&state, filas * columnas * sizeof(curandState));
-    cudaMalloc((void**)&tablero_dev, filas * columnas * sizeof(int));
-
-    cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    dim3 blocks(filas, columnas);
-    dim3 threads(filas, columnas);
-    printf("\nGeneracion inicial del tablero:\n");
-
-
-    //BUCLE DEL JUEGO!!!
-    int coordX;
-    int coordY;
-
-
-    while (vidas > 0) {
-        //Al empezar cada ronda, rellenar el tablero con caramelos
-        system("cls");
-        printf("\n \t\tCUNDY CROSH SOGA\n");
-        printf("----------------------------------------------------------------\n");
-        printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
-        printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-        rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-        print_matrix((int*)tablero_host, filas, columnas);
-
-        //Pedir las coordenadas al usuario
-        if (modo == 1) {
-            coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
-            coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
+        else if (primer[1] == 'm') {
+            modo = 1;
         }
-        else {
-            coordY = rand() % filas;
-            coordX = rand() % columnas;
-            printf("Posicion elegida aleatoriamente: Fila %d, Columna %d", coordY + 1, coordX + 1);
-            getchar();
+        int dificultad = atoi(argv[2]);
+        int tiposCaramelos = 4;
+        if (dificultad == 1) {
+            tiposCaramelos = 4;
         }
-        
-        int valor = tablero_host[coordY][coordX];
+        else if (dificultad == 2) {
+            tiposCaramelos = 6;
+        }
+        int filas = atoi(argv[3]);
+        int columnas = atoi(argv[4]);
 
-        //Intentar eliminar bloques en la posicion que se ha indicado
-        if (tablero_host[coordY][coordX] == 10) {
-            bool filaCol = rand() % 2;
-            if (filaCol) {
-                activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
-            }
-            else if (filaCol) {
-                activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
+        int vidas = 5;
+
+        int* tablero_dev;
+        int* tablero_host = (int*)malloc(filas * columnas * sizeof(int));
+
+
+        //Llenar de 0 la matriz inicial
+        for (int i = 0; i < filas; i++) {
+            for (int j = 0; j < columnas; j++) {
+                tablero_host[i * filas + j] = 0;
             }
         }
-        else if (tablero_host[coordY][coordX] == 20) {
-            activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
-        }
-        else if (tablero_host[coordY][coordX] > 49 && tablero_host[coordY][coordX] < 57) {
-            activarRompecabezas << <blocks,threads >> > (tablero_dev, tablero_host[coordY][coordX]%10, filas, columnas,coordX,coordY);
-        }
-        else {
-            eliminarBloques << < filas, columnas>> > (tablero_dev, filas, columnas, coordY, coordX);
-            ponerPowerup << <filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX, valor);
-        }
 
-        cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+        curandState* state;
 
- 
-        if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
-            //Si no se ha eliminado ningun caramelo con el kernel
-            vidas--;
-            printf("\nPosicion mala: te quedan %d vidas\n", vidas);
-            getchar();
-        }
-        else {
-            //Cuando si se ha modificado el tablero
+        //Dar memoria a la matriz y el generador aleatorio en la GPU
+        cudaMalloc((void**)&state, filas * columnas * sizeof(curandState));
+        cudaMalloc((void**)&tablero_dev, filas * columnas * sizeof(int));
+
+        cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
+        dim3 blocks(filas, columnas);
+        dim3 threads(filas, columnas);
+        printf("\nGeneracion inicial del tablero:\n");
+
+
+        //BUCLE DEL JUEGO!!!
+        int coordX;
+        int coordY;
+
+
+        while (vidas > 0) {
+            //Al empezar cada ronda, rellenar el tablero con caramelos
             system("cls");
             printf("\n \t\tCUNDY CROSH SOGA\n");
             printf("----------------------------------------------------------------\n");
             printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
             printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-            print_matrix((int*)tablero_host, filas, columnas);
-            getchar();
-            system("cls");
-            printf("\n \t\tCUNDY CROSH SOGA\n");
-            printf("----------------------------------------------------------------\n");
-            printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
-            printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-            dejarCaerBloques << <filas, columnas>> > (tablero_dev, filas, columnas);
+            rellenarTablero << < blocks, threads >> > (tablero_dev, filas, columnas, tiposCaramelos, state);
             cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
-            print_matrix((int*)tablero_host, filas, columnas);
-            getchar();
+            print_matrix(tablero_host, filas, columnas);
+
+            //Pedir las coordenadas al usuario
+            if (modo == 1) {
+                coordY = validate_input("Introduce la coordenada Y (fila): ") - 1;
+                coordX = validate_input("Introduce la coordenada X (columna): ") - 1;
+            }
+            else {
+                coordY = rand() % filas;
+                coordX = rand() % columnas;
+                printf("Posicion elegida aleatoriamente: Fila %d, Columna %d", coordY + 1, coordX + 1);
+                getchar();
+            }
+
+            int valor = tablero_host[coordY * filas + coordX];
+
+            //Intentar eliminar bloques en la posicion que se ha indicado
+            if (tablero_host[coordY * filas + coordX] == 10) {
+                bool filaCol = rand() % 2;
+                if (filaCol) {
+                    activarBomba << <blocks, threads >> > (tablero_dev, coordY, filaCol, filas, columnas);
+                }
+                else if (filaCol) {
+                    activarBomba << <blocks, threads >> > (tablero_dev, coordX, filaCol, filas, columnas);
+                }
+            }
+            else if (tablero_host[coordY * filas + coordX] == 20) {
+                activarTNT << <blocks, threads >> > (tablero_dev, coordX, coordY, filas, columnas);
+            }
+            else if (tablero_host[coordY * filas + coordX] > 49 && tablero_host[coordY * filas + coordX] < 57) {
+                activarRompecabezas << <blocks, threads >> > (tablero_dev, tablero_host[coordY * filas + coordX] % 10, filas, columnas, coordX, coordY);
+            }
+            else {
+                eliminarBloques << < filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX);
+                ponerPowerup << <filas, columnas >> > (tablero_dev, filas, columnas, coordY, coordX, valor);
+            }
+
+            cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+
+
+            if (posicionesEliminadas((int*)tablero_host, filas, columnas) == 0) {
+                //Si no se ha eliminado ningun caramelo con el kernel
+                vidas--;
+                printf("\nPosicion mala: te quedan %d vidas\n", vidas);
+                getchar();
+            }
+            else {
+                //Cuando si se ha modificado el tablero
+                system("cls");
+                printf("\n \t\tCUNDY CROSH SOGA\n");
+                printf("----------------------------------------------------------------\n");
+                printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+                printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+                print_matrix((int*)tablero_host, filas, columnas);
+                getchar();
+                system("cls");
+                printf("\n \t\tCUNDY CROSH SOGA\n");
+                printf("----------------------------------------------------------------\n");
+                printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+                printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+                dejarCaerBloques << <filas, columnas >> > (tablero_dev, filas, columnas);
+                cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
+                print_matrix((int*)tablero_host, filas, columnas);
+                getchar();
+            }
         }
+
+        printf("\n\tGAME OVER X_X\n");
+        printf("\n\tGracias por jugar!\n");
+        printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
+        printf("\n\n-------------------------------------------------------\n\n");
+
+        cudaFree(tablero_dev);
+        cudaFree(state);
     }
-
-    printf("\n\tGAME OVER X_X\n");
-    printf("\n\tGracias por jugar!\n");
-    printf("\n\tBy: Daniel De Heras y Adrian Borges\n");
-    printf("\n\n-------------------------------------------------------\n\n");
-
-    cudaFree(tablero_dev);
-    cudaFree(state);
-
     return 0;
 }
 
