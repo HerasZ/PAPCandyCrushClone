@@ -14,17 +14,16 @@ int** tablero;
 //Funciones:
 
 //Generación del tablero, el cual se encarga a la GPU para no sobrecargar la CPU:
-__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state) {
+__global__ void rellenarTablero(int* tablero, int nFilas, int nColumnas, int tiposN, curandState* state, int seed) {
 
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     int j = blockIdx.y * blockDim.y + threadIdx.y;
     //Iniciar el generador aleatorio
     if (j < nColumnas && i < nFilas && tablero[i * nColumnas + j] == 0) {
-        curand_init(3456, i * nColumnas + j, 0, &state[i * nColumnas + j]);
+        curand_init(seed, i * nColumnas + j, 0, &state[i * nColumnas + j]);
         tablero[i * nColumnas + j] = (curand(&state[i * nColumnas + j]) % tiposN + 1);
     }
 }
-
 
 //Comprueba que el bloque dado permita ser eliminado, y en caso afirmativo, elimina dichos elementos sobrescribiéndolos por 0:
 __global__ void eliminarBloques(int* tablero, int nRows, int nColumns, int coordY, int coordX) {
@@ -178,7 +177,6 @@ __global__ void ponerPowerup(int* tablero, int nFilas, int nColumnas, int coordY
     }
 }
 
-
 //-------------------------------------------------------------------------------------------------------------------------------------
 // '1' si es fácil(1,2,3,4), '2' si es difícil(1,2,3,4,5,6) + número de filas del tablero + número de columnas del tablero
 
@@ -270,10 +268,15 @@ int main(int argc, char** argv) {
         columnas = atoi(argv[4]);
     }
     else {
-        modo = validate_input("Introduce 1 para modo manual, 2 para modo automatico: ");
-        tiposCaramelos = validate_input("Introduce el numero de tipos de caramelos: ");
-        filas = validate_input("Introduce el numero de filas del tablero de juego: ");
-        columnas = validate_input("Introduce el numero de columnas del tablero de juego: ");
+        printf("\n \t\tBIENVENIDO A CUNDY CROSH SOGA! \n");
+        printf("----------------------------------------------------------------\n");
+        printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
+        printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
+        printf("\nANTES DE COMENZAR A JUGAR SELECCIONA, SELECCIONA LOS PARAMETROS DEL JUEGO :)\n");
+        modo = validate_input("\nEl juego cuenta con 2 modos de ejecucion: \n1.- Manual \n2.- Automatico\n Elige una:");
+        tiposCaramelos = validate_input("\nAhora, elige cuantos caramelos se usaran en el tablero:");
+        filas = validate_input("\nIntroduce el numero de filas del tablero de juego: ");
+        columnas = validate_input("\nFinalmente, introduce el numero de columnas del tablero de juego: ");
     }
 
     int vidas = 5;
@@ -296,8 +299,17 @@ int main(int argc, char** argv) {
     cudaMalloc((void**)&tablero_dev, filas * columnas * sizeof(int));
 
     cudaMemcpy(tablero_dev, tablero_host, filas * columnas * sizeof(int), cudaMemcpyHostToDevice);
-    dim3 blocks(filas, columnas);
-    dim3 threads(filas, columnas);
+
+    //Calcular número de bloques que se deben asignar, dependiendo de la GPU del usuario:
+    cudaDeviceProp propiedades;     //Creamos la variable que nos permite acceder a las propiedades de nuestro dispositivo
+    cudaGetDeviceProperties(&propiedades, 0);       //Lo inicializamos, indicando que es el dispositivo local al que debe acceder
+
+    int maxBloquesUsuario = propiedades.maxBlocksPerMultiProcessor;
+    int nHilos = filas * columnas;                                  //Número de hilos máximos que necesitaremos por bloque
+    int nBloques = ceil(propiedades.maxThreadsPerBlock/nHilos);     //Número de bloques que necesitaremos para la ejecución
+    
+    dim3 blocks(nBloques, nBloques);
+    dim3 threads(filas,columnas);
     printf("\nGeneracion inicial del tablero:\n");
 
 
@@ -309,11 +321,11 @@ int main(int argc, char** argv) {
     while (vidas > 0) {
         //Al empezar cada ronda, rellenar el tablero con caramelos
         system("cls");
-        printf("\n \t\tCUNDY CROSH SOGA\n");
+        printf("\n \t\tCUNDY CROSH SOGA \n");
         printf("----------------------------------------------------------------\n");
         printf("*Paradigmas Avanzados de Programacion, 3GII* 31 de marzo de 2023\n");
         printf("By: Daniel de Heras Zorita y Adrian Borges Cano\n");
-        rellenarTablero << < blocks, threads>> > (tablero_dev, filas, columnas, tiposCaramelos, state);
+        rellenarTablero << < blocks, threads>> > (tablero_dev, filas, columnas, tiposCaramelos, state, time(NULL));
         cudaMemcpy(tablero_host, tablero_dev, filas * columnas * sizeof(int), cudaMemcpyDeviceToHost);
         print_matrix(tablero_host, filas, columnas);
         printf("\t\tVidas restantes: %d\n\n", vidas);
