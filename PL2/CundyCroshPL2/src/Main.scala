@@ -62,9 +62,30 @@ object Main {
     case head :: tail => 1 + longitudLista(tail)
   }
   
-  //TODO: activarRompecabezas
+  def activarRompecabezas(tablero:List[Int], colorBorrar:Int):List[Int] = {
+    tablero match{
+      //Si la lista está vacía:
+      case Nil => Nil
+      //Si la lista contiene un elemento:
+      case head::Nil => if (head==colorBorrar) 0::Nil
+                        else head::Nil
+      //Si la lista contiene más de un elemento:
+      case head::tail => if (head == colorBorrar) 0 :: activarRompecabezas(tail,colorBorrar)
+                        else head :: activarRompecabezas(tail,colorBorrar)
+    }
+  }
 
   //TODO: activarTNT
+  def activarTNT(tablero:List[Int], posicionActivar:Int, numFilas:Int, numColumnas:Int, radioExplosion:Int):List[Int] = {
+
+    radioExplosion=4
+
+    if (filaBorrar==dentroTablero){
+      activarBombaFila(tableroModificadoConLoAnterior, inicioQueCalcular, finQueCalcular)
+    }
+    //If Se encuentra en el tablero
+    //Usamos el metodo 'activarBombaFila' (luego hacer refactor) para eliminar todos los elementos del rango dicho
+  }
 
   //TODO: eliminarBloques
 
@@ -99,6 +120,11 @@ object Main {
     val nuevaListaColumna: List[Int] = activarBomba(nuevaLista, 7, 5, false)
     println(nuevaListaColumna)
     imprimir(nuevaListaColumna, 5)
+    println("Activar Rompecabezas\n")
+    val nuevaListaRompecabezas: List[Int] = activarRompecabezas(nuevaLista, 3)
+    println(nuevaListaRompecabezas)
+    imprimir(nuevaListaRompecabezas, 5)
+
 
 
   }
