@@ -19,7 +19,9 @@ object Main {
   //Al seleccionar en una determinada casilla, eliminar todos los elementos que se encuentren en la fila/columna de la posición indicada:
   def activarBomba(tablero:List[Int], posicionBomba:Int, numColumnas:Int, filaColumna:Boolean ):List[Int] ={ //'True' si se elimina fila, 'False' si se elimina columna
     if (filaColumna) { //Eliminamos la fila de la posición
+      //Calculamos cual es la primera y última posición de la fila que queremos borrar, para poder eliminarla
       val comienzoFilaBorrar: Int = (posicionBomba/numColumnas)*numColumnas ; val finFilaBorrar: Int = comienzoFilaBorrar+numColumnas-1
+      //Llamamos a la función que se encarga de eliminar los bloques del rango indicado
       activarBombaFila(tablero, comienzoFilaBorrar, finFilaBorrar)
     } else { //Eliminamos la columna de la posición
       val comienzoColumnaBorrar: Int = posicionBomba%numColumnas
@@ -75,19 +77,33 @@ object Main {
     }
   }
 
-  //TODO: activarTNT
   def activarTNT(tablero:List[Int], posicionActivar:Int, numFilas:Int, numColumnas:Int, radioExplosion:Int):List[Int] = {
 
     radioExplosion=4
 
-    if (filaBorrar==dentroTablero){
+    activarTNT_Aux(tablero, posicionActivar-(numColumnas*4) )
+
+    if (filaBorrar==dentroTablero) {
       activarBombaFila(tableroModificadoConLoAnterior, inicioQueCalcular, finQueCalcular)
     }
-    //If Se encuentra en el tablero
-    //Usamos el metodo 'activarBombaFila' (luego hacer refactor) para eliminar todos los elementos del rango dicho
+    //TODO: La idea es calcular el rango de filas que hay que borrar dependiendo del radio de Explosión que asignemos,
+    // y usamos el métoodo 'activarBombaFila' para borrarlas
   }
 
-  //TODO: eliminarBloques
+  def activarTNT_Aux(tablero:List[Int], inicioIterador:Int, finIterador:Int, inicioBorrar:Int, finBorrar:Int):List[Int] = {
+    if (inicioIterador < finIterador) {
+      //Comprobamos si la fila del tablero que se está intentando acceder está dentro del mismo
+      if (){    //TODO: Pensar cómo acceder a la fila del elemento que queremos borrar y comprobar si está dentro de la matriz o no
+          val tableroModificado:List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar)
+          activarTNT_Aux(tableroModificado, inicioIterador+1, finIterador, inicioBorrar, finBorrar)
+      //En caso de que dicha fila no esté dentro de los límites, comprobamos si la siguiente fila lo está
+      } else {
+          activarTNT_Aux(tablero, inicioIterador + 1, finIterador, inicioBorrar, finBorrar)
+      }} else tablero
+  }
+
+
+    //TODO: eliminarBloques
 
   //TODO: elegirBloqueAutomatico
 
@@ -103,7 +119,7 @@ object Main {
     }
   }
 
-  def main(args: Array[String]): Unit = {
+ def main(args: Array[String]): Unit = {
 
     val listaPrueba = List(0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
     println("Impresión de lista con ceros\n")
@@ -124,8 +140,19 @@ object Main {
     val nuevaListaRompecabezas: List[Int] = activarRompecabezas(nuevaLista, 3)
     println(nuevaListaRompecabezas)
     imprimir(nuevaListaRompecabezas, 5)
+    val probadorTNT = List(
+     15, 24, 57, 72, 74, 23, 20, 25,
+     46, 36, 98, 8, 42, 55, 10, 21,
+     44, 47, 98, 10, 82, 94, 89, 7,
+     92, 90, 52, 50, 77, 59, 44, 42,
+     94, 3, 25, 90, 98, 30, 43, 12,
+     50, 49, 77, 93, 97, 85, 80, 52,
+     60, 74, 47, 17, 58, 47, 82, 71,
+     29, 53, 46, 82, 23, 88, 80, 43)
+   println(probadorTNT)
+   println("\nmatriz probadorTNT")
+   imprimir(probadorTNT, 8)
 
 
-
-  }
+ }
 }
