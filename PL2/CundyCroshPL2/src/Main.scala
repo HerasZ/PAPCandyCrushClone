@@ -22,22 +22,21 @@ object Main {
       //Calculamos cual es la primera y última posición de la fila que queremos borrar, para poder eliminarla
       val comienzoFilaBorrar: Int = (posicionBomba/numColumnas)*numColumnas ; val finFilaBorrar: Int = comienzoFilaBorrar+numColumnas-1
       //Llamamos a la función que se encarga de eliminar los bloques del rango indicado
-      activarBombaFila(tablero, comienzoFilaBorrar, finFilaBorrar, numColumnas)
+      eliminarElementosFila(tablero, comienzoFilaBorrar, finFilaBorrar, numColumnas)
     } else { //Eliminamos la columna de la posición
       val comienzoColumnaBorrar: Int = posicionBomba%numColumnas
       activarBombaColumna(tablero, comienzoColumnaBorrar, numColumnas)
     }
   }
 
-  //TODO: Hacer 'refactor' a este metodo porque tbn es usado en el TNT
   //Sobrescribir a 0 los bloques de la fila indicada por el rango de elementos. Los índices comienzan en 0:
-  def activarBombaFila(tablero:List[Int], inicioFilaBorrar:Int, finFilaBorrar:Int, numeroColumnas:Int):List[Int] ={
+  def eliminarElementosFila(tablero:List[Int], inicioFilaBorrar:Int, finFilaBorrar:Int, numeroColumnas:Int):List[Int] ={
     //'numeroColumnas' para poder comprobar que el rango de elementos a eliminar se encuentra en una misma fila de la matriz,
     // y no elimina elementos de otras filas
-    if (inicioFilaBorrar>=0 && (inicioFilaBorrar%numeroColumnas)<numeroColumnas){   //TODO: Quitar la condición del modulo porque siempre va a ser true
+    if (inicioFilaBorrar>=0){
       if (inicioFilaBorrar < finFilaBorrar) {
         val tableroModificado: List[Int] = reemplazarElemento(tablero, inicioFilaBorrar, 0)
-        activarBombaFila(tableroModificado, inicioFilaBorrar + 1, finFilaBorrar, numeroColumnas)
+        eliminarElementosFila(tableroModificado, inicioFilaBorrar + 1, finFilaBorrar, numeroColumnas)
       } else {
         reemplazarElemento(tablero, inicioFilaBorrar, 0)
       }} else tablero
@@ -115,7 +114,7 @@ object Main {
         activarTNT_Aux(tablero, inicioIterador + 1, finIterador, inicioBorrar, finBorrar, numeroFilas, numeroColumnas, rastreador+1)
       } else {
         if (rastreador<=0) {
-          val tableroModificado: List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar, numeroFilas)
+          val tableroModificado: List[Int] = eliminarElementosFila(tablero, inicioBorrar, finBorrar, numeroFilas)
           activarTNT_Aux(tableroModificado, inicioIterador + 1, finIterador, inicioBorrar + numeroColumnas, finBorrar + numeroColumnas, numeroFilas, numeroColumnas,0)
         } else {
           activarTNT_Aux(tablero, inicioIterador, finIterador, inicioBorrar + numeroColumnas, finBorrar + numeroColumnas, numeroFilas, numeroColumnas, rastreador-1)
@@ -124,6 +123,8 @@ object Main {
   }
 
     //TODO: eliminarBloques
+
+    //TODO: Hacer caer bloques de arriba hacia abajo (utilizar getColumna)
 
     //TODO: elegirBloqueAutomatico
 
@@ -142,6 +143,7 @@ object Main {
 
  def main(args: Array[String]): Unit = {
 
+    //Impresión de funciones para comprobar que va bien. Al terminar de desarrollarlo al completo, borrarlo
     val listaPrueba = List(0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0)
     println("Impresión de lista con ceros\n")
     imprimir(listaPrueba, 5)
@@ -173,11 +175,11 @@ object Main {
    println(probadorTNT)
    println("\nmatriz probadorTNT")
    imprimir(probadorTNT, 8)
-   println("\nprobador Bombafila")
-   val probador:List[Int] = activarBombaFila(probadorTNT, -4, 9, 8)
+   println("\nprobador BombaFila")
+   val probador:List[Int] = eliminarElementosFila(probadorTNT, -4, 9, 8)
    imprimir(probador, 8)
    println("\nactivarTNT")
-   val usoTNT: List[Int] = activarTNT(probadorTNT, 33, 8, 8, 3)   //Fila 4 columna 4 (5)
+   val usoTNT: List[Int] = activarTNT(probadorTNT, 63, 8, 8, 3)   //Fila 4 columna 4 (5)
    imprimir(usoTNT, 8)
    }
 }
