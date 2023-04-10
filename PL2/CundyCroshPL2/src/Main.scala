@@ -28,12 +28,13 @@ object Main {
       activarBombaColumna(tablero, comienzoColumnaBorrar, numColumnas)
     }
   }
+
   //TODO: Hacer 'refactor' a este metodo porque tbn es usado en el TNT
   //Sobrescribir a 0 los bloques de la fila indicada por el rango de elementos. Los índices comienzan en 0:
   def activarBombaFila(tablero:List[Int], inicioFilaBorrar:Int, finFilaBorrar:Int, numeroColumnas:Int):List[Int] ={
     //'numeroColumnas' para poder comprobar que el rango de elementos a eliminar se encuentra en una misma fila de la matriz,
     // y no elimina elementos de otras filas
-    if (inicioFilaBorrar>0 && (inicioFilaBorrar%numeroColumnas)<numeroColumnas){
+    if (inicioFilaBorrar>=0 && (inicioFilaBorrar%numeroColumnas)<numeroColumnas){   //TODO: Quitar la condición del modulo porque siempre va a ser true
       if (inicioFilaBorrar < finFilaBorrar) {
         val tableroModificado: List[Int] = reemplazarElemento(tablero, inicioFilaBorrar, 0)
         activarBombaFila(tableroModificado, inicioFilaBorrar + 1, finFilaBorrar, numeroColumnas)
@@ -54,11 +55,12 @@ object Main {
 
   //Reemplazar la posición 'indiceReemplazar' del tablero por 'elementoReemplazar'. El índice comienza en 0:
   def reemplazarElemento(tableroModificar: List[Int], indiceReemplazar: Int, elementoReemplazar: Int):List[Int] = {
-    if (indiceReemplazar<=0) elementoReemplazar::tableroModificar.tail
+    if (tableroModificar==Nil) Nil
+    else if (indiceReemplazar<=0) elementoReemplazar::tableroModificar.tail
     else tableroModificar.head::reemplazarElemento(tableroModificar.tail, indiceReemplazar-1, elementoReemplazar)
   }
 
-  //Devuelve el número de elementos que contiene la lista:
+  //Devolver el número de elementos que contiene la lista:
   def longitudLista(lista: List[Int]): Int = lista match {
     //Si la lista está vacía:
     case Nil => 0
@@ -68,7 +70,7 @@ object Main {
     case head :: tail => 1 + longitudLista(tail)
   }
 
-  //Borra todos los números iguales al entero 'colorBorrar' dentro de la lista 'tablero':
+  //Borrar todos los números iguales al entero 'colorBorrar' dentro de la lista 'tablero':
   def activarRompecabezas(tablero:List[Int], colorBorrar:Int):List[Int] = {
     tablero match{
       //Si la lista está vacía:
@@ -90,139 +92,42 @@ object Main {
     val comienzoBorrar:Int = (posicionActivar%numColumnas)-radioExplosion
     val finalBorrar:Int = (posicionActivar%numColumnas)+radioExplosion
 
-    activarTNT_Aux(tablero, comienzoIterador, finalIterador, comienzoBorrar, finalBorrar, numFilas, numColumnas)
-
-    //TODO adri: LLamar metodo aux
-    /*
-    if (comienzoIterador<0){ //El comienzo del iterador está fuera de los rangos
-      if (finalIterador>numFilas){ //El final del iterador sobrepasa el tamaño de la matriz
-
-      } else { //El final del iterador no sobrepasa el tamaño de la matriz
-
-      }
-    } else {  //El comienzo del iterador está dentro de la matriz
-      if (finalIterador > numFilas) { //El final del iterador sobrepasa el tamaño de la matriz
-
-      } else {    //El final del iterador tampoco sobrepasa el tamaño de la matriz
-
-      }
-    }
-    activarTNT_Aux(tablero, inicioIt, finIt, inicioBorrar, finBorar)
-
-    //TODO: Calcular las posiciones a lo ancho de los elementos que se van a borrar en las filas
-    //TODO: Pensar si todos los if es mejor meterlos en el Aux
-
-
-
-
-    filaActual:Int = posicionActivar/numColumnas //TODO: Comprobar que es mayor que 0
-    finIterador //TODO: Comprobar que es menor que el numColumnas de la matriz
-
-    if (filaBorrar==dentroTablero) {
-      activarBombaFila(tableroModificadoConLoAnterior, inicioQueCalcular, finQueCalcular)
-    }
-    //TODO: La idea es calcular el rango de filas que hay que borrar dependiendo del radio de Explosión que asignemos,
-    // y usamos el métoodo 'activarBombaFila' para borrarlas
-    */
+    //Si tanto el comienzo como el final del rango de elementos a borrar en la fila están fuera del tablero:
+    if (comienzoBorrar<0 && finalBorrar>=numColumnas) activarTNT_Aux(tablero, comienzoIterador, finalIterador, 0, numColumnas-1, numFilas, numColumnas, comienzoIterador) //El 'rastreador' necesita se inicializado con el mismo valor que el 'comienzoIterador'
+    //Si solo el comienzo del rango de elementos a borrar en la fila está fuera del tablero:
+    else if (comienzoBorrar<0) activarTNT_Aux(tablero, comienzoIterador, finalIterador, 0, finalBorrar, numFilas, numColumnas, comienzoIterador) //El 'rastreador' necesita se inicializado con el mismo valor que el 'comienzoIterador'
+    //Si solo el final del rango de elementos a borrar en la fila está fuera del tablero:
+    else if (finalBorrar>=numColumnas) activarTNT_Aux(tablero, comienzoIterador, finalIterador, comienzoBorrar, numColumnas-1, numFilas, numColumnas, comienzoIterador) //El 'rastreador' necesita se inicializado con el mismo valor que el 'comienzoIterador'
+    //Si el rango de elementos a borrar en la fila está dentro del tablero:
+    else activarTNT_Aux(tablero, comienzoIterador, finalIterador, comienzoBorrar, finalBorrar, numFilas, numColumnas, comienzoIterador) //El 'rastreador' necesita se inicializado con el mismo valor que el 'comienzoIterador'
   }
 
-  def activarTNT_Aux(tablero:List[Int], inicioIterador:Int, finIterador:Int, inicioBorrar:Int, finBorrar:Int, numeroFilas:Int, numeroColumnas:Int):List[Int] = {
+  //Función auxiliar que permite recorrer la matriz eliminando las filas afectadas por el TNT.
+  // 'rastreador' es una variable auxiliar inicializada con el mismo valor que 'comienzoIterador'.
+  // 'rastreador' es usada para comprobar cuándo puede comenzar a eliminar los valores de las filas en caso de que 'comienzoIterador' sea mayor que 0.
+  def activarTNT_Aux(tablero:List[Int], inicioIterador:Int, finIterador:Int, inicioBorrar:Int, finBorrar:Int, numeroFilas:Int, numeroColumnas:Int, rastreador:Int):List[Int] = {
     //'inicioIterador' indica la fila por la que se comienza a iterar
-
     //Si el comienzo del iterador no ha terminado, y va a recorrer una fila dentro del rango de la matriz:
-    if (inicioIterador<finIterador && inicioIterador<numeroFilas) {
+    if (inicioIterador<=finIterador && inicioIterador<numeroFilas) {
       //Si el Comienzo del iterador fuera del rango superior
       if (inicioIterador < 0) {
         //Si el inicio del iterador es menor que 0, entonces no haremos nada hasta entrar en los límites de la matriz
-        activarTNT_Aux(tablero, inicioIterador + 1, finIterador, inicioBorrar, finBorrar, numeroFilas, numeroColumnas)
-      } else if (inicioIterador==0){
-        val tableroModificado: List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar, numeroFilas)
-        activarTNT_Aux(tableroModificado, inicioIterador + 1, finIterador, inicioBorrar, finBorrar, numeroFilas, numeroColumnas)
+        activarTNT_Aux(tablero, inicioIterador + 1, finIterador, inicioBorrar, finBorrar, numeroFilas, numeroColumnas, rastreador+1)
       } else {
-        val tableroModificado: List[Int] = activarBombaFila(tablero, inicioBorrar+numeroColumnas, finBorrar+numeroColumnas, numeroFilas)
-        activarTNT_Aux(tableroModificado, inicioIterador + 1, finIterador, inicioBorrar, finBorrar, numeroFilas, numeroColumnas)
-      }
-    } else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
-
-    /*
-      //Si el Fin del iterador fuera del rango inferior
-      if(finIterador > numFilas) {
-        val tableroModificado: List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar)
-        activarTNT_Aux(tableroModificado, inicioIterador + 1, finIterador, inicioBorrar, finBorrar)
-        BorrarFila
-        Volver a llamar a
-        LlamadaMetodoconInicio = 0 + finIterador = numeroFilas
-      } else {
-        BorrarFila
-        Volver a llamar a…
-        LlamadaMetodoconInicio = 0 + finIteradorNormal
-      }
-    } else {
-      If(finIterador > numeroFilas) {
-        BorrarFila
-        Volver a llamar a
-        LlamadaMetodoconInicioNormal + finIterador = numeroFilas
-      }else{
-        BorrarFila
-        Volver a llamar a
-        LlamadaMetodoconInicioNormal + finIteradorNormal
-      }
-    }
-    -si comienzos iterador >= fin iterador
-    , devuelve matriz
-    -Lo de contemplar que inicioBorrar y finBorrar se encuentren dentro de la matriz se hace dentro de
-    ‘activarBombaFila
-    InicioBorrar
-    FinBorrar
-
-
-
-
-
-
-
-
-
-    if (inicioIterador < finIterador) {
-
-      //NO SERÍA NECESARIO PONER TANTOS IF'S SI PUDIESEMOS USAR VARIABLES:
-
-      //Comprobamos si la fila del tablero que se está intentando acceder está dentro del mismo
-      if (inicioIterador < 0) { //El comienzo del iterador está fuera de los rangos
-        if (inicioIterador > numeroFilas) { //El final del iterador sobrepasa el tamaño de la matriz
-          if(inicioBorrar<0) activarTNT_Aux()
-        } else { //El final del iterador no sobrepasa el tamaño de la matriz
-
+        if (rastreador<=0) {
+          val tableroModificado: List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar, numeroFilas)
+          activarTNT_Aux(tableroModificado, inicioIterador + 1, finIterador, inicioBorrar + numeroColumnas, finBorrar + numeroColumnas, numeroFilas, numeroColumnas,0)
+        } else {
+          activarTNT_Aux(tablero, inicioIterador, finIterador, inicioBorrar + numeroColumnas, finBorrar + numeroColumnas, numeroFilas, numeroColumnas, rastreador-1)
         }
-      } else { //El comienzo del iterador está dentro de la matriz
-        if (inicioIterador > numeroFilas) { //El final del iterador sobrepasa el tamaño de la matriz
-
-        } else { //El final del iterador tampoco sobrepasa el tamaño de la matriz
-
-        }
-      }
-
-      //TODO: (Empezar desde cero) COSAS QUE METER EN BUCLE AUXILIAR (Empezar desde cero):
-      // 1.- Que el comienzo del iterador (eje Y) sea mayor que 0 + que el final de iterador sea menor que numFilas
-      // 2.- Que comienzo borrar (eje X) sea mayor que 0 y que el final sea menor que numColumnas
-      // 3.- Aplicar un caso base para que el bucle termine
-
-
-
-      if (inicioIterador>=0) {    //TODO: Eliminar
-          val tableroModificado:List[Int] = activarBombaFila(tablero, inicioBorrar, finBorrar)
-          activarTNT_Aux(tableroModificado, inicioIterador+1, finIterador, inicioBorrar, finBorrar)
-      //En caso de que dicha fila no esté dentro de los límites, comprobamos si la siguiente fila lo está
-      } else {
-          activarTNT_Aux(tablero, inicioIterador + 1, finIterador, inicioBorrar, finBorrar)
-      }} else tablero
-      */
+      }} else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
     //TODO: eliminarBloques
 
     //TODO: elegirBloqueAutomatico
 
+  //Imprimir la matriz: TODO Adaptarlo para los potenciadores y que los 0 se muestren como vacío
   def imprimir(l: List[Int], numColumnas:Int): Unit = {
     print(" " + l.head + " ")
     if (l.tail.length % numColumnas == 0) {
@@ -272,8 +177,7 @@ object Main {
    val probador:List[Int] = activarBombaFila(probadorTNT, -4, 9, 8)
    imprimir(probador, 8)
    println("\nactivarTNT")
-   val usoTNT: List[Int] = activarTNT(probadorTNT, 27, 8, 8, 4)
+   val usoTNT: List[Int] = activarTNT(probadorTNT, 33, 8, 8, 3)   //Fila 4 columna 4 (5)
    imprimir(usoTNT, 8)
-   //TODO: Usar debugger en método de 'activarTNT' para solucionarlo
    }
 }
