@@ -2,7 +2,7 @@ import scala.util.Random
 object Main {
 
   val numFilas: Int = 0
-  val numColumnas: Int = 0
+  val numColumnas: Int = 8
   val random = new Random()
 
   //Sustituir en los elementos que valgan 0 un número aleatorio entre los posibles indicados:
@@ -122,7 +122,20 @@ object Main {
       }} else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
-    //TODO: eliminarBloques
+
+  //TODO: eliminarBloques
+  def eliminarBloques(tablero:List[Int], columna:Int, fila:Int, caramelo:Int): List[Int] = {
+    if (columna >= 0 && fila >= 0 && tablero(fila * numColumnas + columna).equals(caramelo)) {
+      val nuevoTablero = reemplazarElemento(tablero, fila * numColumnas + columna, 0)
+      val tablero1 = eliminarBloques(nuevoTablero, columna + 1, fila, caramelo)
+      val tablero2 = eliminarBloques(tablero1, columna - 1, fila, caramelo)
+      val tablero3 = eliminarBloques(tablero2, columna, fila + 1, caramelo)
+      eliminarBloques(tablero3, columna, fila - 1, caramelo)
+    } else {
+      tablero
+    }
+  }
+
 
     //TODO: Hacer caer bloques de arriba hacia abajo (utilizar getColumna)
 
@@ -164,15 +177,21 @@ object Main {
     println(nuevaListaRompecabezas)
     imprimir(nuevaListaRompecabezas, 5)
     val probadorTNT:List[Int] = List(
-     1, 2, 5, 7, 7, 2, 2, 2,
-     6, 3, 9, 8, 2, 5, 1, 1,
-     4, 7, 9, 1, 8, 4, 9, 7,
+     1, 1, 5, 7, 7, 2, 2, 2,
+     6, 1, 1, 8, 2, 5, 1, 1,
+     4, 1, 1, 1, 8, 4, 9, 7,
      2, 9, 5, 5, 7, 9, 4, 2,
      4, 3, 5, 9, 9, 3, 4, 1,
      5, 9, 7, 3, 7, 5, 8, 2,
      6, 4, 4, 1, 5, 4, 8, 7,
      2, 3, 4, 2, 3, 8, 8, 4)
    println(probadorTNT)
+
+   //Borrar elementos?
+   val borrarCaram:List[Int] = eliminarBloques(probadorTNT,0,0,1)
+   println("\nProbando eliminar bloques en fila 0, columna 0")
+   imprimir(borrarCaram,8)
+
    println("\nmatriz probadorTNT")
    imprimir(probadorTNT, 8)
    println("\nprobador BombaFila")
