@@ -1,9 +1,15 @@
 import scala.util.Random
 object Main {
 
-  val numFilas: Int = 0
+  val numFilas: Int = 8
   val numColumnas: Int = 8
   val random = new Random()
+
+
+  def invertirLista(lista: List[Int]): List[Int] =  lista match {
+    case Nil => Nil
+    case head :: tail => invertirLista(tail) :+ head
+  }
 
   //Sustituir en los elementos que valgan 0 un número aleatorio entre los posibles indicados:
   def rellenarTablero(posibilidadesBloques:Int, tableroRellenar:List[Int]):List[Int] = {
@@ -125,7 +131,7 @@ object Main {
 
   //TODO: eliminarBloques
   def eliminarBloques(tablero:List[Int], columna:Int, fila:Int, caramelo:Int): List[Int] = {
-    if (columna >= 0 && fila >= 0 && tablero(fila * numColumnas + columna).equals(caramelo)) {
+    if (columna >= 0 && columna < numColumnas && fila >= 0 && fila < numFilas && tablero(fila * numColumnas + columna).equals(caramelo)) {
       val nuevoTablero = reemplazarElemento(tablero, fila * numColumnas + columna, 0)
       val tablero1 = eliminarBloques(nuevoTablero, columna + 1, fila, caramelo)
       val tablero2 = eliminarBloques(tablero1, columna - 1, fila, caramelo)
@@ -136,18 +142,74 @@ object Main {
     }
   }
 
+    //Funcion que llamaremos para hacer subir los ceros de las columnas
+    def flotarCeros(matrix: List[Int], numRows: Int, numCols: Int, currentCol: Int = 0): List[Int] = {
+      if (currentCol >= numCols) {
+        matrix
+      } else {
+        // Obtener los indices de todos los 0 en la columna
+        // Invertimos la lista para tenerlos en el orden del de mas abajo al mas arriba en la columna
+        val zeroIndices = invertirLista(findCeroIndices(matrix, currentCol, numCols))
+        // Mover todos los ceros hacia arriba
+        val newMatrix = moverCeros(matrix, zeroIndices, currentCol, numRows, numCols)
+        // Pasar a la siguiente columna
+        flotarCeros(newMatrix, numRows, numCols, currentCol + 1)
+      }
+    }
 
-    //TODO: Hacer caer bloques de arriba hacia abajo (utilizar getColumna)
+  //Funcion que obtendra todos los indices de los elementos que sean 0 en una columna, devolviendolos en una lista
+  def findCeroIndices(matrix: List[Int], currentPos: Int, numCols: Int): List[Int] = {
+    //Si nos salimos de la matriz, paramos
+    if (currentPos > longitudLista(matrix)-1) Nil
+    else {
+      if (matrix(currentPos) == 0) {
+        //Si encontramos un 0, ponemos el indice del elemento como cabeza de la lista, y comprobamos el siguiente elemento de la columna
+        currentPos :: findCeroIndices(matrix, currentPos + numCols, numCols)
+      } else {
+        //Si no hay un 0 en la posicion, continuamos sin ponerlo como cabeza.
+        findCeroIndices(matrix, currentPos + numCols, numCols)
+      }
+    }
+  }
 
+  //Funcion para mover los 0 de las posiciones de zeroIndices a la parte de arriba de las columnas
+  def moverCeros(matrix: List[Int], zeroIndices: List[Int], currentCol: Int, numRows: Int, numCols:Int): List[Int] = {
+    zeroIndices match {
+      //Cuando quede la lista vacia
+      case Nil => matrix
+      //Cuando aun hay elementos por subir
+      case head :: tail =>
+        //Obtener el elemento que no sea 0 que se encuentre en la parte mas superior de la columna.
+        val nonZeroIndex = findNoCeroIndex(matrix, head-numCols, numCols)
+        //Sustituir la posicion del 0 con el elemento seleccionado
+        val newMatrix = reemplazarElemento(matrix, head, matrix(nonZeroIndex))
+        //Llamada recursiva con el resto de posiciones que tienen 0s
+        //En la matriz se sustituye
+        moverCeros(reemplazarElemento(newMatrix, nonZeroIndex, 0), tail, currentCol, numRows, numCols)
+
+    }
+  }
+
+  //Funcion que devolvera la posicion del primer elemento que no sea un 0 en la columna de la posicion que se le pase
+  def findNoCeroIndex(matrix: List[Int], currentIndex: Int, numCols: Int): Int = {
+    if (currentIndex < 0) currentIndex+numCols
+    else {
+      if (matrix(currentIndex) != 0) {
+        currentIndex
+      } else {
+        findNoCeroIndex(matrix, currentIndex - numCols, numCols)
+      }
+    }
+  }
     //TODO: elegirBloqueAutomatico
 
   //Imprimir la matriz: TODO Adaptarlo para los potenciadores y que los 0 se muestren como vacío
   def imprimir(l: List[Int], numColumnas:Int): Unit = {
     print(" " + l.head + " ")
-    if (l.tail.length % numColumnas == 0) {
+    if (longitudLista(l.tail) % numColumnas == 0) {
       print("\n")
-      if (l.tail.length > 0) imprimir(l.tail, numColumnas)
-    } else if (l.tail.length <= 0) {
+      if (longitudLista(l.tail) > 0) imprimir(l.tail, numColumnas)
+    } else if (longitudLista(l.tail) <= 0) {
       throw new Error("ERROR")
     } else {
       imprimir(l.tail, numColumnas)
@@ -178,19 +240,23 @@ object Main {
     imprimir(nuevaListaRompecabezas, 5)
     val probadorTNT:List[Int] = List(
      1, 1, 5, 7, 7, 2, 2, 2,
-     6, 1, 1, 8, 2, 5, 1, 1,
+     6, 1, 4, 8, 2, 5, 1, 1,
      4, 1, 1, 1, 8, 4, 9, 7,
-     2, 9, 5, 5, 7, 9, 4, 2,
-     4, 3, 5, 9, 9, 3, 4, 1,
-     5, 9, 7, 3, 7, 5, 8, 2,
+     2, 9, 1, 1, 7, 9, 4, 2,
+     4, 3, 5, 1, 9, 3, 4, 1,
+     5, 9, 7, 1, 7, 5, 8, 2,
      6, 4, 4, 1, 5, 4, 8, 7,
-     2, 3, 4, 2, 3, 8, 8, 4)
+     2, 3, 4, 6, 3, 8, 8, 4)
    println(probadorTNT)
 
    //Borrar elementos?
    val borrarCaram:List[Int] = eliminarBloques(probadorTNT,0,0,1)
    println("\nProbando eliminar bloques en fila 0, columna 0")
    imprimir(borrarCaram,8)
+
+   val caer:List[Int] = flotarCeros(borrarCaram,8,8,0)
+   println()
+   imprimir(caer,8)
 
    println("\nmatriz probadorTNT")
    imprimir(probadorTNT, 8)
