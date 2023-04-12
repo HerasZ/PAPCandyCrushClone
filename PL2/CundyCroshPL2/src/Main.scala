@@ -205,7 +205,10 @@ object Main {
 
   //Imprimir la matriz: TODO Adaptarlo para los potenciadores y que los 0 se muestren como vacío
   def imprimir(l: List[Int], numColumnas:Int): Unit = {
-    print(" " + l.head + " ")
+    l.head match {
+      case 0 => print("   ")
+      case _ => print(" " + l.head + " ")
+    }
     if (longitudLista(l.tail) % numColumnas == 0) {
       print("\n")
       if (longitudLista(l.tail) > 0) imprimir(l.tail, numColumnas)
