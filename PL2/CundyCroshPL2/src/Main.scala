@@ -128,8 +128,6 @@ object Main {
       }} else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
-
-  //TODO: eliminarBloques
   def eliminarBloques(tablero:List[Int], columna:Int, fila:Int, caramelo:Int): List[Int] = {
     if (columna >= 0 && columna < numColumnas && fila >= 0 && fila < numFilas && tablero(fila * numColumnas + columna).equals(caramelo)) {
       val nuevoTablero = reemplazarElemento(tablero, fila * numColumnas + columna, 0)
@@ -201,7 +199,14 @@ object Main {
       }
     }
   }
-    //TODO: elegirBloqueAutomatico
+
+  //Elegir automaticamente un bloque al azar del tablero:
+  def elegirBloqueAutomatico(tablero:List[Int]):Int={
+    random.nextInt(longitudLista(tablero)) + 1
+  }
+  //TODO: elegirBloqueAutomaticoOptimizado (Crear nuevo proyecto para ello)
+
+  //TODO: Hacer main
 
   //Imprimir la matriz: TODO Adaptarlo para los potenciadores y que los 0 se muestren como vacío
   def imprimir(l: List[Int], numColumnas:Int): Unit = {
@@ -269,5 +274,7 @@ object Main {
    println("\nactivarTNT")
    val usoTNT: List[Int] = activarTNT(probadorTNT, 63, 8, 8, 3)   //Fila 4 columna 4 (5)
    imprimir(usoTNT, 8)
+   println("\nProbadorElegirBloqueAleatorio")
+   println(elegirBloqueAutomatico(probadorTNT))
    }
 }
