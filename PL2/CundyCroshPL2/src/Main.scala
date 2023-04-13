@@ -135,11 +135,12 @@ object Main {
 
   def eliminarBloques(tablero: List[Int], columna: Int, fila: Int, caramelo: Int): List[Int] = {
     if (columna >= 0 && columna < numColumnas && fila >= 0 && fila < numFilas && tablero(fila * numColumnas + columna).equals(caramelo)) {
-      val tablero1 = eliminarBloques(tablero, columna + 1, fila, caramelo)
+      val tableroTemp = reemplazarElemento(tablero, fila * numColumnas + columna, 0)
+      val tablero1 = eliminarBloques(tableroTemp, columna + 1, fila, caramelo)
       val tablero2 = eliminarBloques(tablero1, columna - 1, fila, caramelo)
       val tablero3 = eliminarBloques(tablero2, columna, fila + 1, caramelo)
       val tablero4 = eliminarBloques(tablero3, columna, fila - 1, caramelo)
-      if (contarEliminados(tablero4) == 0) tablero else {
+      if (contarEliminados(tablero4) <= 1 ) tablero else {
         reemplazarElemento(tablero4, fila * numColumnas + columna, 0)
       }
     } else {
