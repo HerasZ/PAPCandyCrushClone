@@ -241,7 +241,7 @@ object Main {
   }
   //TODO: elegirBloqueAutomaticoOptimizado (Crear nuevo proyecto para ello)
 
-  //Imprimir la matriz: TODO Adaptarlo para los potenciadores
+  //Imprimir la matriz:
   @tailrec
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
     val elem = l.head
@@ -250,7 +250,13 @@ object Main {
       case 10 => print(" B ")
       case 20 => print(" T ")
       case elem if (elem > 30) => print(" R" + elem / 10 + " ")
-      case _ => print(" " + elem + " ")
+      case 1 => print("\u001b[34m "+ elem+ " \u001b[0m")
+      case 2 => print("\u001b[31m " + elem + " \u001b[0m")
+      case 3 => print("\u001b[38;5;208m " + elem + " \u001b[0m")
+      case 4 => print("\u001b[32m " + elem + " \u001b[0m")
+      case 5 => print("\u001b[38;5;94m "+elem+" \u001b[0m")
+      case 6 => print("\u001b[33m "+elem+" \u001b[0m")
+      case _ => Nil
     }
     if (longitudLista(l.tail) % numColumnas == 0) {
       print("\n")
@@ -269,10 +275,10 @@ object Main {
       try {
         num = readLine().toInt
         if (num < 0 || num > maxValue) {
-          println(s"Number must be between 0 and $maxValue.")
+          println(s"Tiene que ser menor que $maxValue.")
         }
       } catch {
-        case _: NumberFormatException => println("Invalid input. Please enter a number.")
+        case _: NumberFormatException => println()
       }
     }
     num
