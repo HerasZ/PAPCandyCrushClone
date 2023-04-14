@@ -65,13 +65,12 @@ object Main {
   }
 
   //Devolver el número de elementos que contiene la lista:
-  def longitudLista(lista: List[Int]): Int = lista match {
+  @tailrec
+  def longitudLista(lista: List[Int], long:Int = 0): Int = lista match {
     //Si la lista está vacía:
-    case Nil => 0
-    //Si la lista solo tiene un elemento:
-    case head :: Nil => 1
+    case Nil => long
     //Si la lista tiene más de un elemento
-    case head :: tail => 1 + longitudLista(tail)
+    case _ :: tail => longitudLista(tail,long+1)
   }
 
   //Borrar todos los números iguales al entero 'colorBorrar' dentro de la lista 'tablero':
