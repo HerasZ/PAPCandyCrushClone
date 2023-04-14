@@ -132,7 +132,7 @@ object Main {
   def comprobarCaramelo(tablero:List[Int],columna:Int,fila:Int,caramelo:Int,numFilas:Int,numColumnas:Int): List[Int] = caramelo match{
     case 10 => activarBomba(tablero,fila*numColumnas+columna,numColumnas,random.nextInt(2)==0)
     case 20 => activarTNT(tablero,fila*numColumnas+columna,numFilas,numColumnas,4)
-    case caramelo if caramelo > 30 => activarRompecabezas(tablero,caramelo/10)
+    case caramelo if caramelo > 30 => activarRompecabezas(reemplazarElemento(tablero,fila*numColumnas+columna,0),caramelo%10)
     case _ => eliminarBloques_aux(tablero, columna, fila, caramelo, numFilas, numColumnas)
   }
   //Funcion que se llamara en el main, que se encargara de llamar a su auxiliar para hacer la eliminacion de los bloques
@@ -245,16 +245,16 @@ object Main {
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
     val elem = l.head
     elem match {
-      case 0 => print("   ")
-      case 10 => print(" B ")
-      case 20 => print(" T ")
+      case 0 => print("    ")
+      case 10 => print(" B  ")
+      case 20 => print(" T  ")
       case elem if (elem > 30) => print(" R" + elem % 10 + " ")
-      case 1 => print("\u001b[34m "+ elem+ " \u001b[0m")
-      case 2 => print("\u001b[31m " + elem + " \u001b[0m")
-      case 3 => print("\u001b[38;5;208m " + elem + " \u001b[0m")
-      case 4 => print("\u001b[32m " + elem + " \u001b[0m")
-      case 5 => print("\u001b[38;5;94m "+elem+" \u001b[0m")
-      case 6 => print("\u001b[33m "+elem+" \u001b[0m")
+      case 1 => print("\u001b[34m "+ elem+ "  \u001b[0m")
+      case 2 => print("\u001b[31m " + elem + "  \u001b[0m")
+      case 3 => print("\u001b[38;5;208m " + elem + "  \u001b[0m")
+      case 4 => print("\u001b[32m " + elem + "  \u001b[0m")
+      case 5 => print("\u001b[38;5;94m "+elem+"  \u001b[0m")
+      case 6 => print("\u001b[33m "+elem+"  \u001b[0m")
       case _ => Nil
     }
     if (longitudLista(l.tail) % numColumnas == 0) {
