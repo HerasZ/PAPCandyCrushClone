@@ -331,61 +331,10 @@ object Main {
     }
   }
 
+  //TODO: Entrada parametros por consola
   def main(args: Array[String]): Unit = {
     val numFilas = 10
     val numColumnas = 12
-    /*
-    //Impresión de funciones para comprobar que va bien. Al terminar de desarrollarlo al completo, borrarlo
-    val listaPrueba = List(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
-    println("Impresión de lista con ceros\n")
-    imprimir(listaPrueba, 5)
-    println("Rellenar Tablero\n")
-    val nuevaLista: List[Int] = rellenarTablero(6, listaPrueba)
-    println(nuevaLista)
-    imprimir(nuevaLista, 5)
-    println("Activar Bomba Fila\n")
-    val nuevaListaFila: List[Int] = activarBomba(nuevaLista, 7, 5, true)
-    println(nuevaListaFila)
-    imprimir(nuevaListaFila, 5)
-    println("Activar Bomba Columna\n")
-    val nuevaListaColumna: List[Int] = activarBomba(nuevaLista, 7, 5, false)
-    println(nuevaListaColumna)
-    imprimir(nuevaListaColumna, 5)
-    println("Activar Rompecabezas\n")
-    val nuevaListaRompecabezas: List[Int] = activarRompecabezas(nuevaLista, 3)
-    println(nuevaListaRompecabezas)
-    imprimir(nuevaListaRompecabezas, 5)
-    val probadorTNT: List[Int] = List(
-      1, 1, 5, 7, 7, 2, 2, 2,
-      6, 1, 4, 8, 2, 5, 1, 1,
-      4, 1, 1, 1, 8, 4, 9, 7,
-      2, 9, 1, 1, 7, 9, 4, 2,
-      4, 3, 5, 1, 9, 3, 4, 1,
-      5, 9, 7, 1, 7, 5, 8, 2,
-      6, 4, 4, 1, 5, 4, 8, 7,
-      2, 3, 4, 6, 3, 8, 8, 4)
-    println(probadorTNT)
-
-    //Borrar elementos?
-    val borrarCaram: List[Int] = eliminarBloques(probadorTNT, 0, 0, 1)
-    println("\nProbando eliminar bloques en fila 0, columna 0")
-    imprimir(borrarCaram, 8)
-
-    val caer: List[Int] = flotarCeros(borrarCaram, 8, 8, 0)
-    println()
-    imprimir(caer, 8)
-
-    println("\nmatriz probadorTNT")
-    imprimir(probadorTNT, 8)
-    println("\nprobador BombaFila")
-    val probador: List[Int] = eliminarElementosFila(probadorTNT, -4, 9, 8)
-    imprimir(probador, 8)
-    println("\nactivarTNT")
-    val usoTNT: List[Int] = activarTNT(probadorTNT, 63, 8, 8, 3) //Fila 4 columna 4 (5)
-    imprimir(usoTNT, 8)
-    println("\nProbadorElegirBloqueAleatorio")
-    println(elegirBloqueAutomatico(probadorTNT))
-*/
     val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
     bucleJuego(matriz, numColumnas, numFilas, 6, 5)
 
