@@ -1,10 +1,9 @@
 import scala.annotation.tailrec
 import scala.util.Random
 import scala.io.StdIn.readLine
+
 object Main {
 
-  val numFilas: Int = 8
-  val numColumnas: Int = 8
   val random = new Random()
 
 
@@ -20,7 +19,7 @@ object Main {
       case Nil => Nil
       //En caso de que la lista tenga al menos un elemento:
       case _ => if (tableroRellenar.head == 0) (random.nextInt(posibilidadesBloques) + 1) :: rellenarTablero(posibilidadesBloques, tableroRellenar.tail)
-      else  tableroRellenar.head :: rellenarTablero(posibilidadesBloques, tableroRellenar.tail)
+      else tableroRellenar.head :: rellenarTablero(posibilidadesBloques, tableroRellenar.tail)
     }
   }
 
@@ -39,6 +38,7 @@ object Main {
   }
 
   //Sobrescribir a 0 los bloques de la fila indicada por el rango de elementos. Los índices comienzan en 0:
+  @tailrec
   def eliminarElementosFila(tablero: List[Int], inicioFilaBorrar: Int, finFilaBorrar: Int, numeroColumnas: Int): List[Int] = {
     //'numeroColumnas' para poder comprobar que el rango de elementos a eliminar se encuentra en una misma fila de la matriz,
     // y no elimina elementos de otras filas
@@ -53,6 +53,7 @@ object Main {
   }
 
   //Sobrescribir a 0 los bloques de la columna indicada en 'columnaBorrar'. El índice comienza en 0:
+  @tailrec
   def activarBombaColumna(tablero: List[Int], columnaBorrar: Int, numColumnas: Int): List[Int] = {
     if (columnaBorrar < longitudLista(tablero)) {
       val tableroModificado: List[Int] = reemplazarElemento(tablero, columnaBorrar, 0)
@@ -114,6 +115,7 @@ object Main {
   //Función auxiliar que permite recorrer la matriz eliminando las filas afectadas por el TNT.
   // 'rastreador' es una variable auxiliar inicializada con el mismo valor que 'comienzoIterador'.
   // 'rastreador' es usada para comprobar cuándo puede comenzar a eliminar los valores de las filas en caso de que 'comienzoIterador' sea mayor que 0.
+  @tailrec
   def activarTNT_Aux(tablero: List[Int], inicioIterador: Int, finIterador: Int, inicioBorrar: Int, finBorrar: Int, numeroFilas: Int, numeroColumnas: Int, rastreador: Int): List[Int] = {
     //'inicioIterador' indica la fila por la que se comienza a iterar
     //Si el comienzo del iterador no ha terminado, y va a recorrer una fila dentro del rango de la matriz:
@@ -133,27 +135,48 @@ object Main {
     } else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
-  def eliminarBloques(tablero: List[Int], columna: Int, fila: Int, caramelo: Int): List[Int] = {
+
+  //Funcion que se llamara en el main, que se encargara de llamar a su auxiliar para hacer la eliminacion de los bloques
+  // y despues comprobara cuantos bloques se han eliminado para poner el power-up correspondiente
+  def eliminarBloques(tablero: List[Int], columna: Int, fila: Int, caramelo: Int, numFilas: Int, numColumnas: Int): List[Int] = {
+    //Borrar los caramelos contiguos
+    val nuevoTablero = eliminarBloques_aux(tablero, columna, fila, caramelo, numFilas, numColumnas)
+    //Contar cuantos caramelos hemos borrado
+    val caramelosElim = contarEliminados(nuevoTablero)
+    caramelosElim match {
+      //Si hemos borrado 1 caramelo, devolvemos el tablero tal y como estaba
+      case caramelosElim if (caramelosElim <= 1) => tablero
+      //Si hemos borrado suficientes caramelos, sustituimos la posicion inicial por el power-up correspondiente
+      case caramelosElim if (caramelosElim == 5) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 10)
+      case caramelosElim if (caramelosElim == 6) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 20)
+      case caramelosElim if (caramelosElim >= 7) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 30 + tablero(fila * numColumnas + columna))
+      //Si hemos borrado mas de 1 pero menos de los necesarios para power-ups, devolvemos el tablero con los cambios
+      case _ => nuevoTablero
+    }
+  }
+
+  def eliminarBloques_aux(tablero: List[Int], columna: Int, fila: Int, caramelo: Int, numFilas: Int, numColumnas: Int): List[Int] = {
+    //Comprobar que vamos a eliminar en una posicion valida y que es el mismo tipo de caramelo
     if (columna >= 0 && columna < numColumnas && fila >= 0 && fila < numFilas && tablero(fila * numColumnas + columna).equals(caramelo)) {
       val tableroTemp = reemplazarElemento(tablero, fila * numColumnas + columna, 0)
-      val tablero1 = eliminarBloques(tableroTemp, columna + 1, fila, caramelo)
-      val tablero2 = eliminarBloques(tablero1, columna - 1, fila, caramelo)
-      val tablero3 = eliminarBloques(tablero2, columna, fila + 1, caramelo)
-      val tablero4 = eliminarBloques(tablero3, columna, fila - 1, caramelo)
-      if (contarEliminados(tablero4) <= 1 ) tablero else {
-        reemplazarElemento(tablero4, fila * numColumnas + columna, 0)
-      }
+      val tablero1 = eliminarBloques_aux(tableroTemp, columna + 1, fila, caramelo, numFilas, numColumnas)
+      val tablero2 = eliminarBloques_aux(tablero1, columna - 1, fila, caramelo, numFilas, numColumnas)
+      val tablero3 = eliminarBloques_aux(tablero2, columna, fila + 1, caramelo, numFilas, numColumnas)
+      //La llamada con la ultima posicion devuelve el tablero modificado
+      eliminarBloques_aux(tablero3, columna, fila - 1, caramelo, numFilas, numColumnas)
     } else {
+      //Si nos hemos salido de los limites, devolvemos el tablero sin cambios
       tablero
     }
   }
 
-  def contarEliminados(tablero:List[Int]): Int = tablero match {
+  def contarEliminados(tablero: List[Int]): Int = tablero match {
     case Nil => 0
-    case head :: tail => if(head == 0) 1 + contarEliminados(tail) else contarEliminados(tail)
+    case head :: tail => if (head == 0) 1 + contarEliminados(tail) else contarEliminados(tail)
   }
 
   //Funcion que llamaremos para hacer subir los ceros de las columnas
+  @tailrec
   def flotarCeros(matrix: List[Int], numRows: Int, numCols: Int, currentCol: Int = 0): List[Int] = {
     if (currentCol >= numCols) {
       matrix
@@ -183,6 +206,7 @@ object Main {
   }
 
   //Funcion para mover los 0 de las posiciones de zeroIndices a la parte de arriba de las columnas
+  @tailrec
   def moverCeros(matrix: List[Int], zeroIndices: List[Int], currentCol: Int, numRows: Int, numCols: Int): List[Int] = {
     zeroIndices match {
       //Cuando quede la lista vacia
@@ -198,31 +222,35 @@ object Main {
     }
   }
 
-  def bajarColumna(matrix:List[Int], indexCero:Int, numCols:Int): List[Int] = {
-    if(indexCero < numCols) {
+  @tailrec
+  def bajarColumna(matrix: List[Int], indexCero: Int, numCols: Int): List[Int] = {
+    if (indexCero < numCols) {
       matrix
-    } else if(matrix(indexCero-numCols)==0) {
+    } else if (matrix(indexCero - numCols) == 0) {
       matrix
     } else {
       val temp = matrix(indexCero - numCols)
-      val cambioMatrix = reemplazarElemento(matrix,indexCero,temp)
-      bajarColumna(reemplazarElemento(cambioMatrix,indexCero-numCols,0),indexCero-numCols,numCols)
+      val cambioMatrix = reemplazarElemento(matrix, indexCero, temp)
+      bajarColumna(reemplazarElemento(cambioMatrix, indexCero - numCols, 0), indexCero - numCols, numCols)
     }
   }
 
   //Elegir automaticamente un bloque al azar del tablero:
-  def elegirBloqueAutomatico(tablero:List[Int]):Int={
+  def elegirBloqueAutomatico(tablero: List[Int]): Int = {
     random.nextInt(longitudLista(tablero)) + 1
   }
   //TODO: elegirBloqueAutomaticoOptimizado (Crear nuevo proyecto para ello)
 
-  //TODO: Hacer main
-
   //Imprimir la matriz: TODO Adaptarlo para los potenciadores
+  @tailrec
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
-    l.head match {
+    val elem = l.head
+    elem match {
       case 0 => print("   ")
-      case _ => print(" " + l.head + " ")
+      case 10 => print(" B ")
+      case 20 => print(" T ")
+      case elem if (elem > 30) => print(" R" + elem / 10 + " ")
+      case _ => print(" " + elem + " ")
     }
     if (longitudLista(l.tail) % numColumnas == 0) {
       print("\n")
@@ -251,8 +279,8 @@ object Main {
   }
 
   @tailrec
-  def bucleJuego(matriz:List[Int], numColumnas:Int , numFilas:Int, caramelosTipos:Int, vidas:Int ): Unit = {
-    if(vidas == 0) println("FIN DEL JUEGO") else {
+  def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int): Unit = {
+    if (vidas == 0) println("FIN DEL JUEGO") else {
       println()
       val matrizRellena: List[Int] = rellenarTablero(caramelosTipos, matriz)
 
@@ -260,14 +288,10 @@ object Main {
       imprimir(matrizRellena, numColumnas)
       println("---" * numColumnas)
 
-      val fila = pedirNumero(numFilas, "Introduce la fila: ") - 1
-      val columna = pedirNumero(numFilas, "Introduce la columna: ") - 1
-      val matrizActualizada: List[Int] = eliminarBloques(matrizRellena, columna, fila, matrizRellena(fila * numColumnas + columna))
-
-      println("---" * numColumnas)
-      imprimir(matrizActualizada, numColumnas)
-      println("---" * numColumnas)
-      readLine()
+      val fila: Int = pedirNumero(numFilas, "Introduce la fila: ") - 1
+      val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
+      val carameloElegido: Int = matrizRellena(fila * numColumnas + columna)
+      val matrizActualizada: List[Int] = eliminarBloques(matrizRellena, columna, fila, carameloElegido, numFilas, numColumnas)
 
       val casillasElim: Int = contarEliminados(matrizActualizada)
       if (casillasElim <= 0) {
@@ -275,6 +299,12 @@ object Main {
         readLine()
         bucleJuego(matrizActualizada, numColumnas, numFilas, caramelosTipos, vidas - 1)
       } else {
+
+        println("---" * numColumnas)
+        imprimir(matrizActualizada, numColumnas)
+        println("---" * numColumnas)
+        readLine()
+
         val matrizCaerBloques: List[Int] = flotarCeros(matrizActualizada, numFilas, numColumnas)
 
         println("---" * numColumnas)
@@ -288,7 +318,8 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-
+    val numFilas = 8
+    val numColumnas = 8
     /*
     //Impresión de funciones para comprobar que va bien. Al terminar de desarrollarlo al completo, borrarlo
     val listaPrueba = List(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
@@ -341,9 +372,9 @@ object Main {
     println("\nProbadorElegirBloqueAleatorio")
     println(elegirBloqueAutomatico(probadorTNT))
 */
-    val matriz:List[Int] = List.fill(numFilas*numColumnas)(0)
-    bucleJuego(matriz,numColumnas,numFilas,6,5)
+    val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
+    bucleJuego(matriz, numColumnas, numFilas, 6, 5)
 
-   }
+  }
 
 }
