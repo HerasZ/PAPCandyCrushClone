@@ -169,9 +169,11 @@ object Main {
     }
   }
 
-  def contarEliminados(tablero: List[Int]): Int = tablero match {
-    case Nil => 0
-    case head :: tail => if (head == 0) 1 + contarEliminados(tail) else contarEliminados(tail)
+  //Funcion que cuenta los 0 que hay en el tablero
+  @tailrec
+  def contarEliminados(tablero: List[Int], total:Int = 0): Int = tablero match {
+    case Nil => total
+    case head :: tail => if (head == 0) contarEliminados(tail,total + 1) else contarEliminados(tail,total)
   }
 
   //Funcion que llamaremos para hacer subir los ceros de las columnas
@@ -223,10 +225,13 @@ object Main {
 
   @tailrec
   def bajarColumna(matrix: List[Int], indexCero: Int, numCols: Int): List[Int] = {
+    //Si nuestro 0 se encuentra en la primera fila, paramos
     if (indexCero < numCols) {
       matrix
+      //Si tenemos un 0 en la fila de encima, paramos
     } else if (matrix(indexCero - numCols) == 0) {
       matrix
+      //Si no, intercambiamos nuestro 0 con el elemento que tiene en la fila encima suya
     } else {
       val temp = matrix(indexCero - numCols)
       val cambioMatrix = reemplazarElemento(matrix, indexCero, temp)
@@ -245,10 +250,13 @@ object Main {
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
     val elem = l.head
     elem match {
+      //Imprimir elementos borrados
       case 0 => print("    ")
+      //Imprimir power-ups
       case 10 => print(" B  ")
       case 20 => print(" T  ")
       case elem if (elem > 30) => print(" R" + elem % 10 + " ")
+      //Imprimir los caramelos con sus colores
       case 1 => print("\u001b[34m "+ elem+ "  \u001b[0m")
       case 2 => print("\u001b[31m " + elem + "  \u001b[0m")
       case 3 => print("\u001b[38;5;208m " + elem + "  \u001b[0m")
@@ -268,7 +276,7 @@ object Main {
   }
 
   def pedirNumero(maxValue: Int, prompt: String): Int = {
-    var num = -1 // initialize num to an invalid value to enter the loop
+    var num = -1 // Para entrar al bucle
     while (num < 0 || num > maxValue) {
       print(prompt)
       try {
@@ -324,8 +332,8 @@ object Main {
   }
 
   def main(args: Array[String]): Unit = {
-    val numFilas = 8
-    val numColumnas = 8
+    val numFilas = 10
+    val numColumnas = 12
     /*
     //Impresión de funciones para comprobar que va bien. Al terminar de desarrollarlo al completo, borrarlo
     val listaPrueba = List(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0)
