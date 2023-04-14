@@ -6,12 +6,6 @@ object Main {
 
   val random = new Random()
 
-
-  def invertirLista(lista: List[Int]): List[Int] = lista match {
-    case Nil => Nil
-    case head :: tail => invertirLista(tail) :+ head
-  }
-
   //Sustituir en los elementos que valgan 0 un número aleatorio entre los posibles indicados:
   def rellenarTablero(posibilidadesBloques: Int, tableroRellenar: List[Int]): List[Int] = {
     tableroRellenar match {
@@ -135,21 +129,26 @@ object Main {
     } else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
-
+  def comprobarCaramelo(tablero:List[Int],columna:Int,fila:Int,caramelo:Int,numFilas:Int,numColumnas:Int): List[Int] = caramelo match{
+    case 10 => activarBomba(tablero,fila*numColumnas+columna,numColumnas,random.nextInt(2)==0)
+    case 20 => activarTNT(tablero,fila*numColumnas+columna,numFilas,numColumnas,4)
+    case caramelo if caramelo > 30 => activarRompecabezas(tablero,caramelo/10)
+    case _ => eliminarBloques_aux(tablero, columna, fila, caramelo, numFilas, numColumnas)
+  }
   //Funcion que se llamara en el main, que se encargara de llamar a su auxiliar para hacer la eliminacion de los bloques
   // y despues comprobara cuantos bloques se han eliminado para poner el power-up correspondiente
   def eliminarBloques(tablero: List[Int], columna: Int, fila: Int, caramelo: Int, numFilas: Int, numColumnas: Int): List[Int] = {
-    //Borrar los caramelos contiguos
-    val nuevoTablero = eliminarBloques_aux(tablero, columna, fila, caramelo, numFilas, numColumnas)
+    val carameloOriginal = caramelo
+    val nuevoTablero = comprobarCaramelo(tablero, columna, fila, caramelo, numFilas, numColumnas)
     //Contar cuantos caramelos hemos borrado
     val caramelosElim = contarEliminados(nuevoTablero)
     caramelosElim match {
       //Si hemos borrado 1 caramelo, devolvemos el tablero tal y como estaba
       case caramelosElim if (caramelosElim <= 1) => tablero
-      //Si hemos borrado suficientes caramelos, sustituimos la posicion inicial por el power-up correspondiente
-      case caramelosElim if (caramelosElim == 5) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 10)
-      case caramelosElim if (caramelosElim == 6) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 20)
-      case caramelosElim if (caramelosElim >= 7) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 30 + tablero(fila * numColumnas + columna))
+      //Si hemos borrado suficientes caramelos sin usar powerup, sustituimos la posicion inicial por el power-up correspondiente
+      case caramelosElim if (caramelosElim == 5 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 10)
+      case caramelosElim if (caramelosElim == 6 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 20)
+      case caramelosElim if (caramelosElim >= 7 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 30 + carameloOriginal)
       //Si hemos borrado mas de 1 pero menos de los necesarios para power-ups, devolvemos el tablero con los cambios
       case _ => nuevoTablero
     }
@@ -249,7 +248,7 @@ object Main {
       case 0 => print("   ")
       case 10 => print(" B ")
       case 20 => print(" T ")
-      case elem if (elem > 30) => print(" R" + elem / 10 + " ")
+      case elem if (elem > 30) => print(" R" + elem % 10 + " ")
       case 1 => print("\u001b[34m "+ elem+ " \u001b[0m")
       case 2 => print("\u001b[31m " + elem + " \u001b[0m")
       case 3 => print("\u001b[38;5;208m " + elem + " \u001b[0m")
@@ -297,6 +296,7 @@ object Main {
       val fila: Int = pedirNumero(numFilas, "Introduce la fila: ") - 1
       val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
       val carameloElegido: Int = matrizRellena(fila * numColumnas + columna)
+
       val matrizActualizada: List[Int] = eliminarBloques(matrizRellena, columna, fila, carameloElegido, numFilas, numColumnas)
 
       val casillasElim: Int = contarEliminados(matrizActualizada)
