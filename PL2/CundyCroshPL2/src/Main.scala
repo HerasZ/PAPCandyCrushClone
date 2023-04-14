@@ -309,8 +309,8 @@ object Main {
       } else if (modo == 1) {
         val coord = elegirBloqueAutomatico(matrizRellena)
         val fila: Int = coord / numColumnas
-        val columna = coord % numColumnas
-        println("La coordenada elegida es: Fila " + fila + ", Columna " + columna)
+        val columna: Int = coord % numColumnas
+        println("La coordenada elegida es: Fila " + (fila+1) + ", Columna " + (columna+1))
         readLine()
         (fila, columna)
       } else {
