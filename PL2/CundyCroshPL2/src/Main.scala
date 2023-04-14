@@ -66,11 +66,11 @@ object Main {
 
   //Devolver el número de elementos que contiene la lista:
   @tailrec
-  def longitudLista(lista: List[Int], long:Int = 0): Int = lista match {
+  def longitudLista(lista: List[Int], long: Int = 0): Int = lista match {
     //Si la lista está vacía:
     case Nil => long
     //Si la lista tiene más de un elemento
-    case _ :: tail => longitudLista(tail,long+1)
+    case _ :: tail => longitudLista(tail, long + 1)
   }
 
   //Borrar todos los números iguales al entero 'colorBorrar' dentro de la lista 'tablero':
@@ -128,12 +128,13 @@ object Main {
     } else tablero //El iterador ha llegado a su fin o va a intentar iterar sobre una posición externa a la matriz. Por tanto, se termina el método
   }
 
-  def comprobarCaramelo(tablero:List[Int],columna:Int,fila:Int,caramelo:Int,numFilas:Int,numColumnas:Int): List[Int] = caramelo match{
-    case 10 => activarBomba(tablero,fila*numColumnas+columna,numColumnas,random.nextInt(2)==0)
-    case 20 => activarTNT(tablero,fila*numColumnas+columna,numFilas,numColumnas,4)
-    case caramelo if caramelo > 30 => activarRompecabezas(reemplazarElemento(tablero,fila*numColumnas+columna,0),caramelo%10)
+  def comprobarCaramelo(tablero: List[Int], columna: Int, fila: Int, caramelo: Int, numFilas: Int, numColumnas: Int): List[Int] = caramelo match {
+    case 10 => activarBomba(tablero, fila * numColumnas + columna, numColumnas, random.nextInt(2) == 0)
+    case 20 => activarTNT(tablero, fila * numColumnas + columna, numFilas, numColumnas, 4)
+    case caramelo if caramelo > 30 => activarRompecabezas(reemplazarElemento(tablero, fila * numColumnas + columna, 0), caramelo % 10)
     case _ => eliminarBloques_aux(tablero, columna, fila, caramelo, numFilas, numColumnas)
   }
+
   //Funcion que se llamara en el main, que se encargara de llamar a su auxiliar para hacer la eliminacion de los bloques
   // y despues comprobara cuantos bloques se han eliminado para poner el power-up correspondiente
   def eliminarBloques(tablero: List[Int], columna: Int, fila: Int, caramelo: Int, numFilas: Int, numColumnas: Int): List[Int] = {
@@ -145,9 +146,9 @@ object Main {
       //Si hemos borrado 1 caramelo, devolvemos el tablero tal y como estaba
       case caramelosElim if (caramelosElim <= 1) => tablero
       //Si hemos borrado suficientes caramelos sin usar powerup, sustituimos la posicion inicial por el power-up correspondiente
-      case caramelosElim if (caramelosElim == 5 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 10)
-      case caramelosElim if (caramelosElim == 6 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 20)
-      case caramelosElim if (caramelosElim >= 7 && carameloOriginal<10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 30 + carameloOriginal)
+      case caramelosElim if (caramelosElim == 5 && carameloOriginal < 10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 10)
+      case caramelosElim if (caramelosElim == 6 && carameloOriginal < 10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 20)
+      case caramelosElim if (caramelosElim >= 7 && carameloOriginal < 10) => reemplazarElemento(nuevoTablero, fila * numColumnas + columna, 30 + carameloOriginal)
       //Si hemos borrado mas de 1 pero menos de los necesarios para power-ups, devolvemos el tablero con los cambios
       case _ => nuevoTablero
     }
@@ -170,9 +171,9 @@ object Main {
 
   //Funcion que cuenta los 0 que hay en el tablero
   @tailrec
-  def contarEliminados(tablero: List[Int], total:Int = 0): Int = tablero match {
+  def contarEliminados(tablero: List[Int], total: Int = 0): Int = tablero match {
     case Nil => total
-    case head :: tail => if (head == 0) contarEliminados(tail,total + 1) else contarEliminados(tail,total)
+    case head :: tail => if (head == 0) contarEliminados(tail, total + 1) else contarEliminados(tail, total)
   }
 
   //Funcion que llamaremos para hacer subir los ceros de las columnas
@@ -256,12 +257,12 @@ object Main {
       case 20 => print(" T  ")
       case elem if (elem > 30) => print(" R" + elem % 10 + " ")
       //Imprimir los caramelos con sus colores
-      case 1 => print("\u001b[34m "+ elem+ "  \u001b[0m")
+      case 1 => print("\u001b[34m " + elem + "  \u001b[0m")
       case 2 => print("\u001b[31m " + elem + "  \u001b[0m")
       case 3 => print("\u001b[38;5;208m " + elem + "  \u001b[0m")
       case 4 => print("\u001b[32m " + elem + "  \u001b[0m")
-      case 5 => print("\u001b[38;5;94m "+elem+"  \u001b[0m")
-      case 6 => print("\u001b[33m "+elem+"  \u001b[0m")
+      case 5 => print("\u001b[38;5;94m " + elem + "  \u001b[0m")
+      case 6 => print("\u001b[33m " + elem + "  \u001b[0m")
       case _ => Nil
     }
     if (longitudLista(l.tail) % numColumnas == 0) {
@@ -291,17 +292,31 @@ object Main {
   }
 
   @tailrec
-  def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int): Unit = {
+  def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int): Unit = {
     if (vidas == 0) println("FIN DEL JUEGO") else {
       println()
       val matrizRellena: List[Int] = rellenarTablero(caramelosTipos, matriz)
 
-      println("---" * numColumnas)
+      println("----" * numColumnas)
       imprimir(matrizRellena, numColumnas)
-      println("---" * numColumnas)
+      println("----" * numColumnas)
 
-      val fila: Int = pedirNumero(numFilas, "Introduce la fila: ") - 1
-      val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
+      //Elegir los valores de la fila y columna dependiendo del modo
+      val (fila: Int, columna: Int) = if (modo == 2) {
+        val fila: Int = pedirNumero(numFilas, "Introduce la fila: ") - 1
+        val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
+        (fila, columna)
+      } else if (modo == 1) {
+        val coord = elegirBloqueAutomatico(matrizRellena)
+        val fila: Int = coord / numColumnas
+        val columna = coord % numColumnas
+        println("La coordenada elegida es: Fila " + fila + ", Columna " + columna)
+        readLine()
+        (fila, columna)
+      } else {
+        (None, None)
+      }
+
       val carameloElegido: Int = matrizRellena(fila * numColumnas + columna)
 
       val matrizActualizada: List[Int] = eliminarBloques(matrizRellena, columna, fila, carameloElegido, numFilas, numColumnas)
@@ -310,32 +325,54 @@ object Main {
       if (casillasElim <= 0) {
         println(s"Fallo: Te quedan ${vidas - 1} vidas")
         readLine()
-        bucleJuego(matrizActualizada, numColumnas, numFilas, caramelosTipos, vidas - 1)
+        bucleJuego(matrizActualizada, numColumnas, numFilas, caramelosTipos, vidas - 1, modo)
       } else {
 
-        println("---" * numColumnas)
+        println("----" * numColumnas)
         imprimir(matrizActualizada, numColumnas)
-        println("---" * numColumnas)
+        println("----" * numColumnas)
         readLine()
 
         val matrizCaerBloques: List[Int] = flotarCeros(matrizActualizada, numFilas, numColumnas)
 
-        println("---" * numColumnas)
+        println("----" * numColumnas)
         imprimir(matrizCaerBloques, numColumnas)
-        println("---" * numColumnas)
+        println("----" * numColumnas)
         readLine()
 
-        bucleJuego(matrizCaerBloques, numColumnas, numFilas, caramelosTipos, vidas)
+        bucleJuego(matrizCaerBloques, numColumnas, numFilas, caramelosTipos, vidas, modo)
       }
     }
   }
 
-  //TODO: Entrada parametros por consola
   def main(args: Array[String]): Unit = {
-    val numFilas = 10
-    val numColumnas = 12
-    val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
-    bucleJuego(matriz, numColumnas, numFilas, 6, 5)
+    if (args.length == 4) {
+      val modo = args(0).substring(1) match {
+        // Modo (Auto a/ Manual m)
+        case a => 1
+        case m => 2
+      }
+      val caramelos = args(1).toInt match {
+        // Dificultad (Facil 1/ Dificil 2)
+        case 1 => 4
+        case 2 => 6
+      }
+      val numFilas = args(2).toInt // Filas
+      val numColumnas = args(3).toInt // Columnas
+      val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
+      bucleJuego(matriz, numColumnas, numFilas, caramelos, 5, modo)
+    } else {
+      val modo = pedirNumero(2, "Elige:\n1.-Modo automatico\n2.-Modo manual\n")
+      val caramelos = pedirNumero(2, "Elige:\n1.-Dificultad facil\n2.-Dificultad dificil\n") match {
+        // Dificultad (Facil 1/ Dificil 2)
+        case 1 => 4
+        case 2 => 6
+      }
+      val numFilas = pedirNumero(50, "Introduce el numero de Filas: ") // Filas
+      val numColumnas = pedirNumero(50, "Introduce el numero de Columnas: ") // Columnas
+      val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
+      bucleJuego(matriz, numColumnas, numFilas, caramelos, 5, modo)
+    }
 
   }
 
