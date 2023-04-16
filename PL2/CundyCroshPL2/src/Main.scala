@@ -217,7 +217,6 @@ object Main {
         //Bajar todos los elementos de la columna
         val newMatrix: List[Int] = bajarColumna(matrix, head, numCols)
         //Llamada recursiva con el resto de posiciones que tienen 0s
-        //En la matriz se sustituye
         moverCeros(newMatrix, tail, currentCol, numRows, numCols)
 
     }
@@ -348,8 +347,8 @@ object Main {
     if (args.length == 4) {
       val modo = args(0).substring(1) match {
         // Modo (Auto a/ Manual m)
-        case a => 1
-        case m => 2
+        case "a" => 1
+        case "m" => 2
       }
       val caramelos = args(1).toInt match {
         // Dificultad (Facil 1/ Dificil 2)
