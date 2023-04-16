@@ -244,6 +244,21 @@ object Main {
     random.nextInt(longitudLista(tablero))
   }
 
+  @tailrec
+  def getMejorOpcion(tablero: List[Int], numFilas: Int, numColumnas: Int, posActual: Int = 0, mejorPos: Int = -1, valorMejorPos: Int = 0): Int = {
+    if (posActual > longitudLista(tablero) - 1) {
+      mejorPos
+    } else {
+      val colActual = posActual % numColumnas
+      val filaActual = posActual / numColumnas
+      val valorPosActual = contarEliminados(eliminarBloques(tablero, colActual, filaActual, tablero(posActual), numFilas, numColumnas))
+      if (valorPosActual > valorMejorPos) {
+        getMejorOpcion(tablero, numFilas, numColumnas, posActual + 1, posActual, valorPosActual)
+      } else {
+        getMejorOpcion(tablero, numFilas, numColumnas, posActual + 1, mejorPos, valorMejorPos)
+      }
+    }
+  }
   //Imprimir la matriz:
   @tailrec
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
@@ -306,10 +321,10 @@ object Main {
         val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
         (fila, columna)
       } else if (modo == 1) {
-        val coord = elegirBloqueAutomatico(matrizRellena)
+        val coord = getMejorOpcion(matrizRellena,numFilas,numColumnas)
         val fila: Int = coord / numColumnas
         val columna: Int = coord % numColumnas
-        println("La coordenada elegida es: Fila " + (fila+1) + ", Columna " + (columna+1))
+        println("La mejor posicion es: Fila " + (fila + 1) + ", Columna " + (columna + 1))
         readLine()
         (fila, columna)
       } else {
