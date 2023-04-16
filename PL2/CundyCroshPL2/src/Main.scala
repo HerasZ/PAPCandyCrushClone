@@ -241,9 +241,8 @@ object Main {
 
   //Elegir automaticamente un bloque al azar del tablero:
   def elegirBloqueAutomatico(tablero: List[Int]): Int = {
-    random.nextInt(longitudLista(tablero)) + 1
+    random.nextInt(longitudLista(tablero))
   }
-  //TODO: elegirBloqueAutomaticoOptimizado (Crear nuevo proyecto para ello)
 
   //Imprimir la matriz:
   @tailrec
@@ -362,7 +361,13 @@ object Main {
       val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
       bucleJuego(matriz, numColumnas, numFilas, caramelos, 5, modo)
     } else {
+      println("\n \tBIENVENIDO A CUNDY CROSH SOGA!")
+      println("---------------------------------------------------------------")
+      println("Paradigmas Avanzados de Progamación 3ºGII - 21 de Abril de 2023")
+      println("By: Daniel de Heras Zorita y Adrián Borges Cano\n")
+      println(" -> El juego cuenta con 2 modos de ejecución")
       val modo = pedirNumero(2, "Elige:\n1.-Modo automatico\n2.-Modo manual\n")
+      println(" -> Ahora la dificultad")
       val caramelos = pedirNumero(2, "Elige:\n1.-Dificultad facil\n2.-Dificultad dificil\n") match {
         // Dificultad (Facil 1/ Dificil 2)
         case 1 => 4
