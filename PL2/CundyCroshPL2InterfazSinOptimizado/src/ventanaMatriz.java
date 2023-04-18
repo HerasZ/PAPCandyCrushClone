@@ -36,11 +36,11 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     scala.collection.immutable.List<Object> matrizScala;
 
-    public ventanaMatriz(int modo, int dific,int rows, int column ) {
+    public ventanaMatriz(int modo, int dific, int rows, int column) {
         this.filas = rows;
         this.columnas = column;
         this.modoJuego = modo;
-        if(dific == 1) {
+        if (dific == 1) {
             this.dificultad = 4;
         } else if (dific == 2) {
             this.dificultad = 6;
@@ -56,14 +56,20 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         panel.setLayout(new BorderLayout());
 
         List<Object> list = new ArrayList<Object>();
-        for (int i = 0; i < filas*columnas; i++) {
+        for (int i = 0; i < filas * columnas; i++) {
             list.add(0);
         }
 
         //scala.collection.immutable.List<Object> result = Main.bucleJuego(CollectionConverters.asScala(list).toList(),8,8,6,5,1,0,0);
         matrizScala = Main.rellenarTablero(dificultad, CollectionConverters.asScala(list).toList());
 
-        modeloCaramelos = new DefaultTableModel();
+        modeloCaramelos = new DefaultTableModel() {
+            //Hacer las celdas no editables
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
         tablaCaramelos = new JTable(modeloCaramelos);
         // Create a couple of columns
         for (int i = 0; i < columnas; i++) {
@@ -85,9 +91,18 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 // do some actions here, for example
                 // print first column value from selected row
-                int row = tablaCaramelos.rowAtPoint(evt.getPoint());
-                int col = tablaCaramelos.columnAtPoint(evt.getPoint());
-                System.out.println(tablaCaramelos.getSelectedRow() + " " + tablaCaramelos.getSelectedColumn());
+                int row = 0;
+                int col = 0;
+                if (modo == 1) {
+                    row = tablaCaramelos.rowAtPoint(evt.getPoint());
+                    col = tablaCaramelos.columnAtPoint(evt.getPoint());
+                } else if (modo == 2) {
+                    int pos = Main.getMejorOpcion(matrizScala, filas, columnas, 0, -1, 0);
+                    row = pos / columnas;
+                    col = pos % columnas;
+                }
+
+                System.out.println(row + " " + col);
                 scala.collection.immutable.List<Object> result =
                         Main.bucleJuego(matrizScala, columnas, filas, dificultad, 5, 1, row, col);
 
@@ -95,7 +110,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     System.out.println("Fallo");
                 } else {
                     matrizScala = result;
-                    matrizScala = Main.flotarCeros(matrizScala,filas,columnas,0);
+                    matrizScala = Main.flotarCeros(matrizScala, filas, columnas, 0);
                     matrizScala = Main.rellenarTablero(dificultad, matrizScala);
                     actualizarMatriz();
                 }
@@ -165,7 +180,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                 cell.setBackground(Color.pink);
                 cell.setBackground(Color.pink);
             }
-             return cell;
+            return cell;
         }
     }
 
