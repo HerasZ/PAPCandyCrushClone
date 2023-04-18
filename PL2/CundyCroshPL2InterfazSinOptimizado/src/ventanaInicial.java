@@ -11,7 +11,7 @@ public class ventanaInicial extends JFrame implements ActionListener {
     public ventanaInicial() {
 
         // Establecemos las propiedades de la ventana
-        setTitle("Cundy Crosh PAP-2023");
+        setTitle("Ventana Inicial - Cundy Crosh");
         setSize(700, 400);
         setLocationRelativeTo(null); // Centramos la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -33,9 +33,9 @@ public class ventanaInicial extends JFrame implements ActionListener {
         panel.add(labelFondo);
 
         // Creamos un label para cada componente
-        JLabel titulo = new JLabel("Bienvenido a Cundy Crush!");
+        JLabel titulo = new JLabel("¡Bienvenido a Cundy Crosh!");
         JLabel autores = new JLabel("By: DHZ y ABC");
-        titulo.setFont(new Font("Arial", Font.BOLD, 30));
+        titulo.setFont(new Font("Tahoma", Font.BOLD, 30));
         titulo.setForeground(Color.WHITE);
         autores.setFont(new Font("Tahoma", Font.BOLD, 12));
         autores.setForeground(Color.WHITE);
@@ -70,6 +70,7 @@ public class ventanaInicial extends JFrame implements ActionListener {
         // Si el botón es pulsado, abrimos la siguiente ventana
         if (e.getSource() == botonAdelante) {
             ventanaDatos ventanaNueva = new ventanaDatos();
+//            ventanaNueva.setContentPane(new ventanaDatos().ventanaDatos);
             ventanaNueva.setVisible(true);
             setVisible(false);
         }
