@@ -67,18 +67,18 @@ public class ventanaDatos extends JFrame implements ActionListener {
         numColumnasLabel.setForeground(Color.WHITE);
 
         // Obtenemos el tamaño de la ventana y del titulo
-        Dimension tamañoVentana = getSize();
-        Dimension tamañoTexto = titulo.getPreferredSize();
+        Dimension sizeVentana = getSize();
+        Dimension sizeTexto = titulo.getPreferredSize();
         // Calculamos la posición del titulo, posicion de la que va a derivar el resto de componentes
-        int x = (tamañoVentana.width - tamañoTexto.width) / 2;
-        int y = (tamañoVentana.height - tamañoTexto.height) - 450;
+        int x = (sizeVentana.width - sizeTexto.width) / 2;
+        int y = (sizeVentana.height - sizeTexto.height) - 450;
 
         // Establecemos la posición de los textos en el panel
-        titulo.setBounds(x, y, tamañoTexto.width+10, tamañoTexto.height);
-        modoJuegoLabel.setBounds(x-15, y+70, tamañoTexto.width, tamañoTexto.height);
-        dificultadLabel.setBounds(x-15, y+150, tamañoTexto.width, tamañoTexto.height);
-        numFilasLabel.setBounds(x-15, y+230, tamañoTexto.width, tamañoTexto.height);
-        numColumnasLabel.setBounds(x-15, y+310, tamañoTexto.width, tamañoTexto.height);
+        titulo.setBounds(x, y, sizeTexto.width+10, sizeTexto.height);
+        modoJuegoLabel.setBounds(x-15, y+70, sizeTexto.width, sizeTexto.height);
+        dificultadLabel.setBounds(x-15, y+150, sizeTexto.width, sizeTexto.height);
+        numFilasLabel.setBounds(x-15, y+230, sizeTexto.width, sizeTexto.height);
+        numColumnasLabel.setBounds(x-15, y+310, sizeTexto.width, sizeTexto.height);
 
         //Ahora agregamos los botones que puede manejar el usuario y los configuramos
         ButtonGroup modoJuegoButtonGroup = new ButtonGroup();
@@ -167,7 +167,10 @@ public class ventanaDatos extends JFrame implements ActionListener {
             //Comprobamos que el usuario haya seleccionado alguna opción, de lo contrario se le muestra un mensaje de error
             if(modoJuegoSeleccionado==0 || dificultadSeleccionada==0)
                 JOptionPane.showMessageDialog(null, "Faltan datos por seleccionar ._.", "Error", JOptionPane.ERROR_MESSAGE);
-            else System.out.println("HOLA"); //TODO: Descomentar cuando tenga la otra clase --> ventanaJugar ventanaNueva = new ventanaJugar(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
+            else {
+                ventanaMatriz juego = new ventanaMatriz(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
+                System.out.println("HOLA"); //TODO: Descomentar cuando tenga la otra clase --> ventanaJugar ventanaNueva = new ventanaJugar(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
+            }
 
             //Prints para debuggear:
             System.out.println("modo de Juego " + modoJuegoSeleccionado);

@@ -304,95 +304,18 @@ object Main {
     num
   }
 
-  @tailrec
-  def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int): Unit = {
-    if (vidas == 0) println("FIN DEL JUEGO") else {
-      println()
-      val matrizRellena: List[Int] = rellenarTablero(caramelosTipos, matriz)
-
-      println("----" * numColumnas)
-      imprimir(matrizRellena, numColumnas)
-      println("----" * numColumnas)
-
-      //Elegir los valores de la fila y columna dependiendo del modo
-      val (fila: Int, columna: Int) = if (modo == 2) {
-        val fila: Int = pedirNumero(numFilas, "Introduce la fila: ") - 1
-        val columna: Int = pedirNumero(numFilas, "Introduce la columna: ") - 1
-        (fila, columna)
-      } else if (modo == 1) {
-        val coord = getMejorOpcion(matrizRellena,numFilas,numColumnas)
-        val fila: Int = coord / numColumnas
-        val columna: Int = coord % numColumnas
-        println("La mejor posicion es: Fila " + (fila + 1) + ", Columna " + (columna + 1))
-        readLine()
-        (fila, columna)
-      } else {
-        (None, None)
-      }
-
-      val carameloElegido: Int = matrizRellena(fila * numColumnas + columna)
-
-      val matrizActualizada: List[Int] = eliminarBloques(matrizRellena, columna, fila, carameloElegido, numFilas, numColumnas)
-
+  def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int, fila: Int, columna:Int): List[Int] = {
+    if (vidas == 0) List() else {
+      val carameloElegido: Int = matriz(fila * numColumnas + columna)
+      val matrizActualizada: List[Int] = eliminarBloques(matriz, columna, fila, carameloElegido, numFilas, numColumnas)
       val casillasElim: Int = contarEliminados(matrizActualizada)
       if (casillasElim <= 0) {
-        println(s"Fallo: Te quedan ${vidas - 1} vidas")
-        readLine()
-        bucleJuego(matrizActualizada, numColumnas, numFilas, caramelosTipos, vidas - 1, modo)
+        //FALLO
+        matriz
       } else {
-
-        println("----" * numColumnas)
-        imprimir(matrizActualizada, numColumnas)
-        println("----" * numColumnas)
-        readLine()
-
-        val matrizCaerBloques: List[Int] = flotarCeros(matrizActualizada, numFilas, numColumnas)
-
-        println("----" * numColumnas)
-        imprimir(matrizCaerBloques, numColumnas)
-        println("----" * numColumnas)
-        readLine()
-
-        bucleJuego(matrizCaerBloques, numColumnas, numFilas, caramelosTipos, vidas, modo)
+        matrizActualizada
       }
     }
-  }
-
-  def main(args: Array[String]): Unit = {
-    if (args.length == 4) {
-      val modo = args(0).substring(1) match {
-        // Modo (Auto a/ Manual m)
-        case "a" => 1
-        case "m" => 2
-      }
-      val caramelos = args(1).toInt match {
-        // Dificultad (Facil 1/ Dificil 2)
-        case 1 => 4
-        case 2 => 6
-      }
-      val numFilas = args(2).toInt // Filas
-      val numColumnas = args(3).toInt // Columnas
-      val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
-      bucleJuego(matriz, numColumnas, numFilas, caramelos, 5, modo)
-    } else {
-      println("\n \tBIENVENIDO A CUNDY CROSH SOGA!")
-      println("---------------------------------------------------------------")
-      println("Paradigmas Avanzados de Progamación 3ºGII - 21 de Abril de 2023")
-      println("By: Daniel de Heras Zorita y Adrián Borges Cano\n")
-      println(" -> El juego cuenta con 2 modos de ejecución")
-      val modo = pedirNumero(2, "Elige:\n1.-Modo automatico\n2.-Modo manual\n")
-      println(" -> Ahora la dificultad")
-      val caramelos = pedirNumero(2, "Elige:\n1.-Dificultad facil\n2.-Dificultad dificil\n") match {
-        // Dificultad (Facil 1/ Dificil 2)
-        case 1 => 4
-        case 2 => 6
-      }
-      val numFilas = pedirNumero(50, "Introduce el numero de Filas: ") // Filas
-      val numColumnas = pedirNumero(50, "Introduce el numero de Columnas: ") // Columnas
-      val matriz: List[Int] = List.fill(numFilas * numColumnas)(0)
-      bucleJuego(matriz, numColumnas, numFilas, caramelos, 5, modo)
-    }
-
   }
 
 }
