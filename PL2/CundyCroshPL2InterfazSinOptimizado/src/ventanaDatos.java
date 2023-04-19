@@ -174,7 +174,7 @@ public class ventanaDatos extends JFrame implements ActionListener {
             else {
                 ventanaMatriz juego = new ventanaMatriz(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
                 juego.setVisible(true);
-                //TODO: Descomentar cuando terminemos --> setVisible(false);
+                setVisible(false);
             }
 
             //Prints para debuggear:
