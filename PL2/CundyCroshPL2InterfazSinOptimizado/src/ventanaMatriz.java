@@ -131,14 +131,14 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         JPanel panelTablero = new JPanel();
         ventanaMatriz.add(panelTablero);
         panelTablero.setLayout(null);
-        panelTablero.setBounds(45,30,500,500);
+        panelTablero.setBounds(50,30,500,500);
         tablaCaramelos.setVisible(true);
-        tablaCaramelos.setRowHeight(50);
-        tablaCaramelos.setBounds(45,30,panelTablero.getBounds().width,panelTablero.getBounds().height);
+        tablaCaramelos.setRowHeight(panelTablero.getHeight()/filas);
+        tablaCaramelos.setBounds(0,0,panelTablero.getBounds().width,panelTablero.getBounds().height);
         panelTablero.add(tablaCaramelos);
 
         //Añadimos el número de vidas
-        numVidasLabel.setText("Número de Vidas: "+numVidas);
+        numVidasLabel.setText("Número de Vidas: " + numVidas);
         Dimension tamannoTexto = numVidasLabel.getPreferredSize();
         numVidasLabel.setFont(new Font("Tahoma", Font.BOLD, 30));
         numVidasLabel.setForeground(Color.WHITE);
@@ -213,7 +213,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     //TODO: Borrar cuando terminemos de debuggear
     public static void main(String[] args) {
-        ventanaMatriz ventana1 = new ventanaMatriz(2,1,10,10);
+        ventanaMatriz ventana1 = new ventanaMatriz(1,1,20,20);
         ventana1.setVisible(true);
     }
 
