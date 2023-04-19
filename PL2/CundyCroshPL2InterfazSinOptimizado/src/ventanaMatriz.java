@@ -97,6 +97,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             tablaCaramelos.setShowGrid(false);
         }
 
+
         tablaCaramelos.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 // do some actions here, for example
@@ -279,6 +280,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             int number = Integer.parseInt(value.toString());
 
             ImageIcon imagenCelda;
+            c.setForeground(Color.white);
 
             // Asignamos la imagen correspondiente en función de si es par o impar
             if (number == 1) {
@@ -326,7 +328,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     //TODO: Borrar cuando terminemos de debuggear
     public static void main(String[] args) {
-        ventanaMatriz ventana1 = new ventanaMatriz(1,2,20,20);
+        ventanaMatriz ventana1 = new ventanaMatriz(1,2,16,10);
         ventana1.setVisible(true);
     }
 
