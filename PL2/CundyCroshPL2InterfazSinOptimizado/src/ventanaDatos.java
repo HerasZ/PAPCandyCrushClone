@@ -30,7 +30,7 @@ public class ventanaDatos extends JFrame implements ActionListener {
 
         // Establecemos las propiedades de la ventana
         setTitle("Selector de opciones - Cundy Crosh");
-        setSize(800, 500);
+        setSize(790, 500);
         setLocationRelativeTo(null); // Centramos la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -173,7 +173,8 @@ public class ventanaDatos extends JFrame implements ActionListener {
                 JOptionPane.showMessageDialog(null, "Faltan datos por seleccionar ._.", "Error", JOptionPane.ERROR_MESSAGE);
             else {
                 ventanaMatriz juego = new ventanaMatriz(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
-                System.out.println("HOLA"); //TODO: Descomentar cuando tenga la otra clase --> ventanaJugar ventanaNueva = new ventanaJugar(modoJuegoSeleccionado, dificultadSeleccionada, numFilasSeleccionadas, numColumnasSeleccionadas);
+                juego.setVisible(true);
+                //TODO: Descomentar cuando terminemos --> setVisible(false);
             }
 
             //Prints para debuggear:
@@ -185,10 +186,4 @@ public class ventanaDatos extends JFrame implements ActionListener {
         }
     }
 
-    /*
-    @Override
-    public Image getIconImage(){
-        return Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("src/Imagenes/appIconCandyCrush.png"));
-    }
-    */
 }

@@ -1,6 +1,4 @@
 import javax.swing.*;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -15,13 +13,6 @@ import static java.lang.Thread.sleep;
 public class ventanaMatriz extends JFrame implements ActionListener {
 
     private Image iconoVentana = new ImageIcon("src/Imagenes/appIconCandyCrush.png").getImage();
-    JButton boton;
-    private JPanel ventana;
-    private JTextPane titulo;
-    private JRadioButton holaRadioButton;
-    private JPanel ventanaDatos;
-    private JPanel tablaPanel;
-
     private int filas = 10;
 
     private int columnas = 10;
@@ -31,11 +22,12 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     private DefaultTableModel modeloCaramelos; //Para modificar la tabla
 
     private int modoJuego;
-
+    private int numVidas=5;
+    private JLabel numVidasLabel = new JLabel();
     private int dificultad = 6;
 
-
     scala.collection.immutable.List<Object> matrizScala;
+    private JPanel ventanaMatriz;
 
     public ventanaMatriz(int modo, int dific, int rows, int column) {
         this.filas = rows;
@@ -49,14 +41,23 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
         // Establecer las propiedades de la ventana
         setTitle("Juego - Cundy Crosh");
-        setSize(1000, 400);
+        setSize(650, 800);
         setLocationRelativeTo(null); // Centrar la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // Crear un panel para colocar los componentes
-        JPanel panel = new JPanel();
-        panel.setLayout(new BorderLayout());
+        ventanaMatriz.setLayout(null);
+        // Creamos el ImageIcon
+        ImageIcon imagenFondo = new ImageIcon("src/Imagenes/fondoPantallaCandyCrushOscuroVertical.png");
+        // Cargamos la imagen y creamos un objeto JLabel con la imagen
+        JLabel labelFondo = new JLabel(imagenFondo);
+        // Agregamos el JLabel al panel y establecemos su posición para ponerlo en el fondo
+        labelFondo.setBounds(0, 0, imagenFondo.getIconWidth(), imagenFondo.getIconHeight());
+        ventanaMatriz.add(labelFondo);
+
         //Cambiamos el icono de la ventana
         setIconImage(iconoVentana);
+        // Hacemos que la ventana no sea redimensionable
+        setResizable(false);
 
         List<Object> list = new ArrayList<Object>();
         for (int i = 0; i < filas * columnas; i++) {
@@ -94,7 +95,8 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 // do some actions here, for example
                 // print first column value from selected row
-                int row = 0;
+                if (numVidas>0){
+                    int row = 0;
                 int col = 0;
                 if (modo == 1) {
                     row = tablaCaramelos.rowAtPoint(evt.getPoint());
@@ -107,10 +109,16 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
                 System.out.println(row + " " + col);
                 scala.collection.immutable.List<Object> result =
-                        Main.bucleJuego(matrizScala, columnas, filas, dificultad, 5, 1, row, col);
+                        Main.bucleJuego(matrizScala, columnas, filas, dificultad, numVidas, 1, row, col);
 
-                if (result.isEmpty()) {
+                if (result.equals(matrizScala)) {
                     System.out.println("Fallo");
+                    numVidas--;
+                    numVidasLabel.setText("Número de Vidas: "+numVidas);
+                    if (numVidas==0){
+                        JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!", "FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
+                        dispose();
+                    }
                 } else {
                     matrizScala = result;
                     matrizScala = Main.flotarCeros(matrizScala, filas, columnas, 0);
@@ -118,12 +126,28 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     actualizarMatriz();
                 }
             }
-        });
+        }});
+        //Creamos el panel que contendrá el tablero, que estará dentro del panel de la ventana
+        JPanel panelTablero = new JPanel();
+        ventanaMatriz.add(panelTablero);
+        panelTablero.setLayout(null);
+        panelTablero.setBounds(45,30,500,500);
         tablaCaramelos.setVisible(true);
-        panel.add(tablaCaramelos);
+        tablaCaramelos.setRowHeight(50);
+        tablaCaramelos.setBounds(45,30,panelTablero.getBounds().width,panelTablero.getBounds().height);
+        panelTablero.add(tablaCaramelos);
+
+        //Añadimos el número de vidas
+        numVidasLabel.setText("Número de Vidas: "+numVidas);
+        Dimension tamannoTexto = numVidasLabel.getPreferredSize();
+        numVidasLabel.setFont(new Font("Tahoma", Font.BOLD, 30));
+        numVidasLabel.setForeground(Color.WHITE);
+        numVidasLabel.setBounds(150, 600, tamannoTexto.width+200, tamannoTexto.height+10);
+        labelFondo.add(numVidasLabel);
+        //labelFondo.add(panelTablero);
 
         // Agregar el panel a la ventana
-        this.add(panel);
+        this.add(ventanaMatriz);
         this.setVisible(true);
 
     }
@@ -185,6 +209,12 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             }
             return cell;
         }
+    }
+
+    //TODO: Borrar cuando terminemos de debuggear
+    public static void main(String[] args) {
+        ventanaMatriz ventana1 = new ventanaMatriz(2,1,10,10);
+        ventana1.setVisible(true);
     }
 
 }
