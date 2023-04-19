@@ -14,6 +14,7 @@ import static java.lang.Thread.sleep;
 
 public class ventanaMatriz extends JFrame implements ActionListener {
 
+    private Image iconoVentana = new ImageIcon("src/Imagenes/appIconCandyCrush.png").getImage();
     JButton boton;
     private JPanel ventana;
     private JTextPane titulo;
@@ -47,13 +48,15 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         }
 
         // Establecer las propiedades de la ventana
-        setTitle("Ventana2 de Candy Crush Hola");
-        setSize(400, 200);
+        setTitle("Juego - Cundy Crosh");
+        setSize(1000, 400);
         setLocationRelativeTo(null); // Centrar la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         // Crear un panel para colocar los componentes
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
+        //Cambiamos el icono de la ventana
+        setIconImage(iconoVentana);
 
         List<Object> list = new ArrayList<Object>();
         for (int i = 0; i < filas * columnas; i++) {

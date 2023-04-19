@@ -6,6 +6,7 @@ import java.awt.event.*;
 public class ventanaDatos extends JFrame implements ActionListener {
 
     //Elementos de la ventana:
+    private Image iconoVentana = new ImageIcon("src/Imagenes/appIconCandyCrush.png").getImage();
     private JButton botonJugar;
     private JPanel ventanaDatos;
     private JRadioButton modoJuegoBoton1 = new JRadioButton("Manual");
@@ -33,6 +34,9 @@ public class ventanaDatos extends JFrame implements ActionListener {
         setLocationRelativeTo(null); // Centramos la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        //Cambiamos el icono de la ventana
+        setIconImage(iconoVentana);
+
         // Hacemos que la ventana no sea redimensionable
         setResizable(false);
 
@@ -40,7 +44,7 @@ public class ventanaDatos extends JFrame implements ActionListener {
         ventanaDatos.setLayout(null);
 
         // Creamos el ImageIcon
-        ImageIcon imagenFondo = new ImageIcon("src/fondoPantallaCandyCrushOscuro.png");
+        ImageIcon imagenFondo = new ImageIcon("src/Imagenes/fondoPantallaCandyCrushOscuro.png");
         // Cargamos la imagen y creamos un objeto JLabel con la imagen
         JLabel labelFondo = new JLabel(imagenFondo);
         // Agregamos el JLabel al panel y establecemos su posición para ponerlo en el fondo
@@ -180,4 +184,11 @@ public class ventanaDatos extends JFrame implements ActionListener {
             System.out.println("-------------------------------------");
         }
     }
+
+    /*
+    @Override
+    public Image getIconImage(){
+        return Toolkit.getDefaultToolkit().getImage(ClassLoader.getSystemResource("src/Imagenes/appIconCandyCrush.png"));
+    }
+    */
 }

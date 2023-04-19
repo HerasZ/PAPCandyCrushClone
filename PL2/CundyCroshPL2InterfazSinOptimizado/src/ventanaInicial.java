@@ -4,6 +4,7 @@ import java.awt.event.*;
 
 public class ventanaInicial extends JFrame implements ActionListener {
 
+    private Image iconoVentana = new ImageIcon("src/Imagenes/appIconCandyCrush.png").getImage();
     JButton botonAdelante;
     private JPanel ventana;
     private JTextPane titulo;
@@ -16,6 +17,9 @@ public class ventanaInicial extends JFrame implements ActionListener {
         setLocationRelativeTo(null); // Centramos la ventana en la pantalla
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
+        //Cambiamos el icono de la ventana
+        setIconImage(iconoVentana);
+
         // Hacemos que la ventana no sea redimensionable
         setResizable(false);
 
@@ -24,7 +28,7 @@ public class ventanaInicial extends JFrame implements ActionListener {
         panel.setLayout(null);
 
         // Creamos el ImageIcon
-        ImageIcon imagenFondo = new ImageIcon("src/fondoPantallaCandyCrushOscuro.png");
+        ImageIcon imagenFondo = new ImageIcon("src/Imagenes/fondoPantallaCandyCrushOscuro.png");
 
         // Cargamos la imagen y creamos un objeto JLabel con la imagen
         JLabel labelFondo = new JLabel(imagenFondo);
