@@ -70,7 +70,6 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
         //scala.collection.immutable.List<Object> result = Main.bucleJuego(CollectionConverters.asScala(list).toList(),8,8,6,5,1,0,0);
         matrizScala = Main.rellenarTablero(dificultad, CollectionConverters.asScala(list).toList());
-
         modeloCaramelos = new DefaultTableModel() {
             //Hacer las celdas no editables
             @Override
@@ -100,8 +99,6 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
         tablaCaramelos.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-            // do some actions here, for example
-            // print first column value from selected row       TODO: Esto es justo lo que tenemos que quitar
             if (numVidas>0){
                 int row = 0;
                 int col = 0;
@@ -113,7 +110,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     row = pos / columnas;
                     col = pos % columnas;
                     modoAutomaticoLabel.setText("[Modo Automático]");
-                    //Imprimimos la fila y columna seleccionada como números naturales. O sea, la primera fila y columna es 0
+                    //Imprimimos la fila y columna seleccionada como números naturales. O sea, la primera fila y columna es 1
                     filaElegidaLabel.setText("Fila Elegida: "+ (row+1));
                     columnaElegidaLabel.setText("Columna Elegida: "+(col+1));
                 }
@@ -143,11 +140,10 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         ventanaMatriz.add(panelTablero);
         panelTablero.setLayout(null);
         panelTablero.setBounds(70,30,500,500);
-        tablaCaramelos.setVisible(true);
         tablaCaramelos.setRowHeight(panelTablero.getHeight()/filas);
         tablaCaramelos.setBounds(0,0,panelTablero.getBounds().width,panelTablero.getBounds().height);
+        tablaCaramelos.setVisible(true);
         panelTablero.add(tablaCaramelos);
-
 
         //Añadimos el número de vidas
         numVidasLabel.setText("Número de Vidas: " + numVidas);
@@ -188,6 +184,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         labelFondo.add(modoAutomaticoLabel);
         labelFondo.add(filaElegidaLabel);
         labelFondo.add(columnaElegidaLabel);
+        labelFondo.add(panelTablero);
         labelFondo.add(autoresLabel);
 
         // Agregamos el panel a la ventana
@@ -211,7 +208,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {}
 
-    //TODO: Si no lo usamos, borrarlo
+    //Para hacer que las celdas tengan un color (Usado para debuggear)
     class ColumnColorRenderer extends DefaultTableCellRenderer {
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
             Component cell = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -338,4 +335,5 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             return c;
         }
     }
+
 }
