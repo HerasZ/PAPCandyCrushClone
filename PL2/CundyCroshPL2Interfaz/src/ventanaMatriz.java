@@ -26,8 +26,10 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     private JLabel numVidasLabel = new JLabel();
     private JLabel modoAutomaticoLabel = new JLabel();
     private JLabel filaElegidaLabel = new JLabel();
+    private JLabel logoCandyCrushLabel = new JLabel();
     private JLabel columnaElegidaLabel = new JLabel();
     private int dificultad = 6;
+
 
     scala.collection.immutable.List<Object> matrizScala;
     private JPanel ventanaMatriz;
@@ -56,7 +58,6 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         // Agregamos el JLabel al panel y establecemos su posición para ponerlo en el fondo
         labelFondo.setBounds(0, 0, imagenFondo.getIconWidth(), imagenFondo.getIconHeight());
         ventanaMatriz.add(labelFondo);
-
         //Cambiamos el icono de la ventana
         setIconImage(iconoVentana);
         // Hacemos que la ventana no sea redimensionable
@@ -97,11 +98,10 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             tablaCaramelos.setShowGrid(false);
         }
 
-
         tablaCaramelos.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
-                // do some actions here, for example
-                // print first column value from selected row
+            // do some actions here, for example
+            // print first column value from selected row       TODO: Esto es justo lo que tenemos que quitar
             if (numVidas>0){
                 int row = 0;
                 int col = 0;
@@ -113,8 +113,9 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     row = pos / columnas;
                     col = pos % columnas;
                     modoAutomaticoLabel.setText("[Modo Automático]");
-                    filaElegidaLabel.setText("Fila Elegida: "+row);
-                    columnaElegidaLabel.setText("Columna Elegida: "+col);
+                    //Imprimimos la fila y columna seleccionada como números naturales. O sea, la primera fila y columna es 0
+                    filaElegidaLabel.setText("Fila Elegida: "+ (row+1));        
+                    columnaElegidaLabel.setText("Columna Elegida: "+(col+1));
                 }
 
                 System.out.println(row + " " + col);
@@ -127,7 +128,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     numVidasLabel.setText("Número de Vidas: "+ numVidas);
                     if (numVidas==0){
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!", "FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
-                        dispose();
+                        System.exit(0);
                     }
                 } else {
                     matrizScala = result;
@@ -154,16 +155,29 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         numVidasLabel.setFont(new Font("Tahoma", Font.BOLD, 30));
         numVidasLabel.setForeground(Color.WHITE);
         numVidasLabel.setBounds(160, 700, tamannoTexto.width+200, tamannoTexto.height+10);
-        //Añadimos los Labels que aparecen cuando estamos en el modo automático
-        modoAutomaticoLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
-        modoAutomaticoLabel.setForeground(Color.WHITE);
-        modoAutomaticoLabel.setBounds(200, 560, tamannoTexto.width+200, tamannoTexto.height+15);
-        filaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        filaElegidaLabel.setForeground(Color.WHITE);
-        filaElegidaLabel.setBounds(230, 610, tamannoTexto.width+100, tamannoTexto.height+5);
-        columnaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
-        columnaElegidaLabel.setForeground(Color.WHITE);
-        columnaElegidaLabel.setBounds(230, 640, tamannoTexto.width+100, tamannoTexto.height);
+        if (modo==1){
+            //Establecemos las medidas que debe tener el logo para asegurar que no se verá distorsionado
+            int anchoLogo = 156;
+            int altoLogo = 111;
+            //Añadimos el Label del logo de Candy Crush que aparece en el modo manual
+            ImageIcon img = new ImageIcon(new ImageIcon("src/Imagenes/logoCandyCrush.png").getImage().getScaledInstance(anchoLogo,altoLogo,Image.SCALE_SMOOTH));
+            logoCandyCrushLabel.setIcon(img);
+            //Redimensionamos la imagen
+            logoCandyCrushLabel.setBounds(240, 560, anchoLogo, altoLogo);
+            logoCandyCrushLabel.setSize(anchoLogo,altoLogo);
+            labelFondo.add(logoCandyCrushLabel);
+        } else if (modo==2){
+            //Añadimos los Labels que aparecen cuando estamos en el modo automático
+            modoAutomaticoLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
+            modoAutomaticoLabel.setForeground(Color.WHITE);
+            modoAutomaticoLabel.setBounds(200, 560, tamannoTexto.width+200, tamannoTexto.height+15);
+            filaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+            filaElegidaLabel.setForeground(Color.WHITE);
+            filaElegidaLabel.setBounds(230, 610, tamannoTexto.width+100, tamannoTexto.height+5);
+            columnaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
+            columnaElegidaLabel.setForeground(Color.WHITE);
+            columnaElegidaLabel.setBounds(230, 640, tamannoTexto.width+100, tamannoTexto.height);
+        }
         //Añadimos una pequeña referencia que verifique nuestra autoría en el trabajo
         JLabel autoresLabel = new JLabel("By: DHZ y ABC");
         autoresLabel.setFont(new Font("Tahoma", Font.PLAIN, 10));
@@ -181,10 +195,6 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         this.setVisible(true);
     }
 
-    public void actionPerformed(ActionEvent e) {
-
-    }
-
     private void actualizarMatriz() {
         modeloCaramelos.setRowCount(0);
 
@@ -197,6 +207,9 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         }
         modeloCaramelos.fireTableDataChanged();
     }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {}
 
     //TODO: Si no lo usamos, borrarlo
     class ColumnColorRenderer extends DefaultTableCellRenderer {
@@ -328,7 +341,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     //TODO: Borrar cuando terminemos de debuggear
     public static void main(String[] args) {
-        ventanaMatriz ventana1 = new ventanaMatriz(1,2,16,10);
+        ventanaMatriz ventana1 = new ventanaMatriz(2,2,16,16);
         ventana1.setVisible(true);
     }
 
