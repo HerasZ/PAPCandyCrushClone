@@ -24,7 +24,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     private int modoJuego;
     private int numVidas=5;
     private JLabel numVidasLabel = new JLabel();
-    private JLabel modoAutomatico = new JLabel();
+    private JLabel modoAutomaticoLabel = new JLabel();
     private JLabel filaElegidaLabel = new JLabel();
     private JLabel columnaElegidaLabel = new JLabel();
     private int dificultad = 6;
@@ -112,7 +112,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     int pos = Main.getMejorOpcion(matrizScala, filas, columnas, 0, -1, 0);
                     row = pos / columnas;
                     col = pos % columnas;
-                    modoAutomatico.setText("[Modo Automático]");
+                    modoAutomaticoLabel.setText("[Modo Automático]");
                     filaElegidaLabel.setText("Fila Elegida: "+row);
                     columnaElegidaLabel.setText("Columna Elegida: "+col);
                 }
@@ -155,9 +155,9 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         numVidasLabel.setForeground(Color.WHITE);
         numVidasLabel.setBounds(160, 700, tamannoTexto.width+200, tamannoTexto.height+10);
         //Añadimos los Labels que aparecen cuando estamos en el modo automático
-        modoAutomatico.setFont(new Font("Tahoma", Font.BOLD, 23));
-        modoAutomatico.setForeground(Color.WHITE);
-        modoAutomatico.setBounds(200, 560, tamannoTexto.width+200, tamannoTexto.height+15);
+        modoAutomaticoLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
+        modoAutomaticoLabel.setForeground(Color.WHITE);
+        modoAutomaticoLabel.setBounds(200, 560, tamannoTexto.width+200, tamannoTexto.height+15);
         filaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
         filaElegidaLabel.setForeground(Color.WHITE);
         filaElegidaLabel.setBounds(230, 610, tamannoTexto.width+100, tamannoTexto.height+5);
@@ -165,16 +165,16 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         columnaElegidaLabel.setForeground(Color.WHITE);
         columnaElegidaLabel.setBounds(230, 640, tamannoTexto.width+100, tamannoTexto.height);
         //Añadimos una pequeña referencia que verifique nuestra autoría en el trabajo
-        JLabel autores = new JLabel("By: DHZ y ABC");
-        autores.setFont(new Font("Tahoma", Font.PLAIN, 10));
-        autores.setForeground(Color.WHITE);
-        autores.setBounds(5, 745, tamannoTexto.width, tamannoTexto.height);
+        JLabel autoresLabel = new JLabel("By: DHZ y ABC");
+        autoresLabel.setFont(new Font("Tahoma", Font.PLAIN, 10));
+        autoresLabel.setForeground(Color.WHITE);
+        autoresLabel.setBounds(5, 745, tamannoTexto.width, tamannoTexto.height);
         //Insertamos todos los Labels en el panel
         labelFondo.add(numVidasLabel);
-        labelFondo.add(modoAutomatico);
+        labelFondo.add(modoAutomaticoLabel);
         labelFondo.add(filaElegidaLabel);
         labelFondo.add(columnaElegidaLabel);
-        labelFondo.add(autores);
+        labelFondo.add(autoresLabel);
 
         // Agregamos el panel a la ventana
         this.add(ventanaMatriz);
