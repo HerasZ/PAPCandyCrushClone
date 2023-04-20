@@ -114,7 +114,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     col = pos % columnas;
                     modoAutomaticoLabel.setText("[Modo Automático]");
                     //Imprimimos la fila y columna seleccionada como números naturales. O sea, la primera fila y columna es 0
-                    filaElegidaLabel.setText("Fila Elegida: "+ (row+1));        
+                    filaElegidaLabel.setText("Fila Elegida: "+ (row+1));
                     columnaElegidaLabel.setText("Columna Elegida: "+(col+1));
                 }
 
@@ -341,7 +341,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     //TODO: Borrar cuando terminemos de debuggear
     public static void main(String[] args) {
-        ventanaMatriz ventana1 = new ventanaMatriz(2,2,16,16);
+        ventanaMatriz ventana1 = new ventanaMatriz(1,2,10,10);
         ventana1.setVisible(true);
     }
 
