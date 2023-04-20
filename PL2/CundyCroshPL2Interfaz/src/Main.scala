@@ -288,21 +288,6 @@ object Main {
     }
   }
 
-  def pedirNumero(maxValue: Int, prompt: String): Int = {
-    var num = -1 // Para entrar al bucle
-    while (num < 0 || num > maxValue) {
-      print(prompt)
-      try {
-        num = readLine().toInt
-        if (num < 0 || num > maxValue) {
-          println(s"Tiene que ser menor que $maxValue.")
-        }
-      } catch {
-        case _: NumberFormatException => println()
-      }
-    }
-    num
-  }
 
   def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int, fila: Int, columna:Int): List[Int] = {
     if (vidas == 0) List() else {

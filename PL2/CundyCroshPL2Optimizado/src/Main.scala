@@ -290,19 +290,20 @@ object Main {
   }
 
   def pedirNumero(maxValue: Int, prompt: String): Int = {
-    var num = -1 // Para entrar al bucle
-    while (num < 0 || num > maxValue) {
-      print(prompt)
-      try {
-        num = readLine().toInt
-        if (num < 0 || num > maxValue) {
-          println(s"Tiene que ser menor que $maxValue.")
-        }
-      } catch {
-        case _: NumberFormatException => println()
+    print(prompt)
+    try {
+      val num = readLine().toInt
+      if (num < 0 || num > maxValue) {
+        println(s"Tiene que ser menor que $maxValue.")
+        pedirNumero(maxValue, prompt) // recursive call
+      } else {
+        num
       }
+    } catch {
+      case _: NumberFormatException =>
+        println()
+        pedirNumero(maxValue, prompt) // recursive call
     }
-    num
   }
 
   @tailrec
