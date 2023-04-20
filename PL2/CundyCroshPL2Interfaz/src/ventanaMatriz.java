@@ -338,11 +338,4 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             return c;
         }
     }
-
-    //TODO: Borrar cuando terminemos de debuggear
-    public static void main(String[] args) {
-        ventanaMatriz ventana1 = new ventanaMatriz(1,2,10,10);
-        ventana1.setVisible(true);
-    }
-
 }
