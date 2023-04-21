@@ -238,11 +238,6 @@ object Main {
     }
   }
 
-  //Elegir automaticamente un bloque al azar del tablero:
-  def elegirBloqueAutomatico(tablero: List[Int]): Int = {
-    random.nextInt(longitudLista(tablero))
-  }
-
   @tailrec
   def getMejorOpcion(tablero: List[Int], numFilas: Int, numColumnas: Int, posActual: Int = 0, mejorPos: Int = -1, valorMejorPos: Int = 0): Int = {
     if (posActual > longitudLista(tablero) - 1) {
@@ -258,6 +253,7 @@ object Main {
       }
     }
   }
+
   //Imprimir la matriz:
   @tailrec
   def imprimir(l: List[Int], numColumnas: Int): Unit = {
@@ -287,7 +283,6 @@ object Main {
       imprimir(l.tail, numColumnas)
     }
   }
-
 
   def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int, fila: Int, columna:Int): List[Int] = {
     if (vidas == 0) List() else {
