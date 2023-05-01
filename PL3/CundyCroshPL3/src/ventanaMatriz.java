@@ -3,6 +3,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     private JLabel columnaElegidaLabel = new JLabel();
     private JLabel numPuntuacionLabel = new JLabel();
     private int dificultad = 6;
+    private double segTranscurridos;
 
 
     scala.collection.immutable.List<Object> matrizScala;
@@ -68,6 +70,9 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         for (int i = 0; i < filas * columnas; i++) {
             list.add(0);
         }
+
+        //Contabilizar el tiempo que transcurre desde la creación de la ventana hasta que se termina la partida
+        long tiempoInicio = System.currentTimeMillis();
 
         //scala.collection.immutable.List<Object> result = Main.bucleJuego(CollectionConverters.asScala(list).toList(),8,8,6,5,1,0,0);
         matrizScala = Main.rellenarTablero(dificultad, CollectionConverters.asScala(list).toList());
@@ -124,8 +129,15 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     numVidas--;
                     numVidasLabel.setText("Número de Vidas: "+ numVidas);
                     if (numVidas==0){
-                        JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!\nPuntuación final: "+numPuntos,
-                                "FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
+                        //imprimir el tiempo que ha transcurrido desde que empezó la partida hasta que el usuario se ha quedado sin vidas
+                        long tiempoFin = System.currentTimeMillis();
+                        long tiempoTranscurrido = tiempoFin - tiempoInicio;
+                        segTranscurridos = tiempoTranscurrido / 1000.0;
+                        LocalDate fechaActual = LocalDate.now();
+                        System.out.println("Fecha actual al terminar la partida= "+fechaActual);
+                        JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
+                                        "\nPuntuación final: "+numPuntos +
+                                        "\nDuración de la partida: "+segTranscurridos+" seg","FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
                         System.exit(0);
                     }
                 } else {
