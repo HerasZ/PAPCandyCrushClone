@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns="http://www.intellij.com/uidesigner/form/" version="1" bind-to-class="ventanaDatos">
+  <grid id="27dc6" binding="ventanaDatos" layout-manager="FlowLayout" hgap="5" vgap="5" flow-align="1">
+    <constraints>
+      <xy x="20" y="20" width="385" height="323"/>
+    </constraints>
+    <properties>
+      <enabled value="true"/>
+      <foreground color="-15459909"/>
+    </properties>
+    <border type="none"/>
+    <children/>
+  </grid>
+</form>
