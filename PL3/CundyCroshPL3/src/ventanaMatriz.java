@@ -23,11 +23,12 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
     private int modoJuego;
     private int numVidas=5;
+    private int numPuntos=0;
     private JLabel numVidasLabel = new JLabel();
-    private JLabel modoAutomaticoLabel = new JLabel();
     private JLabel filaElegidaLabel = new JLabel();
     private JLabel logoCandyCrushLabel = new JLabel();
     private JLabel columnaElegidaLabel = new JLabel();
+    private JLabel numPuntuacionLabel = new JLabel();
     private int dificultad = 6;
 
 
@@ -109,7 +110,6 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     int pos = Main.getMejorOpcion(matrizScala, filas, columnas, 0, -1, 0);
                     row = pos / columnas;
                     col = pos % columnas;
-                    modoAutomaticoLabel.setText("[Modo Automático]");
                     //Imprimimos la fila y columna seleccionada como números naturales. O sea, la primera fila y columna es 1
                     filaElegidaLabel.setText("Fila Elegida: "+ (row+1));
                     columnaElegidaLabel.setText("Columna Elegida: "+(col+1));
@@ -124,7 +124,8 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     numVidas--;
                     numVidasLabel.setText("Número de Vidas: "+ numVidas);
                     if (numVidas==0){
-                        JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!", "FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
+                        JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!\nPuntuación final: "+numPuntos,
+                                "FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
                         System.exit(0);
                     }
                 } else {
@@ -132,6 +133,8 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     matrizScala = Main.flotarCeros(matrizScala, filas, columnas, 0);
                     matrizScala = Main.rellenarTablero(dificultad, matrizScala);
                     actualizarMatriz();
+                    //Actualizamos el número de puntos obtenidos por el usuario
+                    numPuntuacionLabel.setText(String.valueOf(numPuntos));
                 }
             }
         }});
@@ -159,21 +162,33 @@ public class ventanaMatriz extends JFrame implements ActionListener {
             ImageIcon img = new ImageIcon(new ImageIcon("src/Imagenes/logoCandyCrush.png").getImage().getScaledInstance(anchoLogo,altoLogo,Image.SCALE_SMOOTH));
             logoCandyCrushLabel.setIcon(img);
             //Redimensionamos la imagen
-            logoCandyCrushLabel.setBounds(240, 560, anchoLogo, altoLogo);
+            logoCandyCrushLabel.setBounds(150, 560, anchoLogo, altoLogo);
             logoCandyCrushLabel.setSize(anchoLogo,altoLogo);
             labelFondo.add(logoCandyCrushLabel);
         } else if (modo==2){
             //Añadimos los Labels que aparecen cuando estamos en el modo automático
+            JLabel modoAutomaticoLabel = new JLabel("[Modo Automático]");
             modoAutomaticoLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
             modoAutomaticoLabel.setForeground(Color.WHITE);
-            modoAutomaticoLabel.setBounds(200, 560, tamannoTexto.width+200, tamannoTexto.height+15);
+            modoAutomaticoLabel.setBounds(110, 560, tamannoTexto.width+200, tamannoTexto.height+15);
             filaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
             filaElegidaLabel.setForeground(Color.WHITE);
-            filaElegidaLabel.setBounds(230, 610, tamannoTexto.width+100, tamannoTexto.height+5);
+            filaElegidaLabel.setBounds(130, 610, tamannoTexto.width+100, tamannoTexto.height+5);
             columnaElegidaLabel.setFont(new Font("Tahoma", Font.PLAIN, 18));
             columnaElegidaLabel.setForeground(Color.WHITE);
-            columnaElegidaLabel.setBounds(230, 640, tamannoTexto.width+100, tamannoTexto.height);
+            columnaElegidaLabel.setBounds(130, 640, tamannoTexto.width+100, tamannoTexto.height);
+            labelFondo.add(modoAutomaticoLabel);
+            labelFondo.add(filaElegidaLabel);
+            labelFondo.add(columnaElegidaLabel);
         }
+        //Añadimos donde se indica el número de puntos obtenidos
+        JLabel puntuacionLabel = new JLabel("Puntuación:");
+        puntuacionLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
+        puntuacionLabel.setForeground(Color.WHITE);
+        puntuacionLabel.setBounds(370, 560, tamannoTexto.width+200, tamannoTexto.height+15);
+        numPuntuacionLabel.setFont(new Font("Tahoma", Font.BOLD, 23));
+        numPuntuacionLabel.setForeground(Color.WHITE);
+        numPuntuacionLabel.setBounds(370, 610, tamannoTexto.width+200, tamannoTexto.height+15);
         //Añadimos una pequeña referencia que verifique nuestra autoría en el trabajo
         JLabel autoresLabel = new JLabel("By: DHZ y ABC");
         autoresLabel.setFont(new Font("Tahoma", Font.PLAIN, 10));
@@ -181,12 +196,10 @@ public class ventanaMatriz extends JFrame implements ActionListener {
         autoresLabel.setBounds(5, 745, tamannoTexto.width, tamannoTexto.height);
         //Insertamos todos los Labels en el panel
         labelFondo.add(numVidasLabel);
-        labelFondo.add(modoAutomaticoLabel);
-        labelFondo.add(filaElegidaLabel);
-        labelFondo.add(columnaElegidaLabel);
+        labelFondo.add(puntuacionLabel);
+        labelFondo.add(numPuntuacionLabel);
         labelFondo.add(panelTablero);
         labelFondo.add(autoresLabel);
-
         // Agregamos el panel a la ventana
         this.add(ventanaMatriz);
         this.setVisible(true);
