@@ -4,6 +4,8 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -134,7 +136,9 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         long tiempoTranscurrido = tiempoFin - tiempoInicio;
                         segTranscurridos = tiempoTranscurrido / 1000.0;
                         LocalDate fechaActual = LocalDate.now();
+                        LocalTime horaActual = LocalTime.now();
                         System.out.println("Fecha actual al terminar la partida= "+fechaActual);
+                        System.out.println("Hora actual al terminar la partida= "+horaActual);
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
                                         "\nPuntuación final: "+numPuntos +
                                         "\nDuración de la partida: "+segTranscurridos+" seg","FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
