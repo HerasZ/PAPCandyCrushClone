@@ -34,6 +34,8 @@ public class ventanaMatriz extends JFrame implements ActionListener {
     private JLabel numPuntuacionLabel = new JLabel();
     private int dificultad = 6;
     private double segTranscurridos;
+    private String nombreJugador = null;
+
 
 
     scala.collection.immutable.List<Object> matrizScala;
@@ -139,9 +141,20 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         LocalTime horaActual = LocalTime.now();
                         System.out.println("Fecha actual al terminar la partida= "+fechaActual);
                         System.out.println("Hora actual al terminar la partida= "+horaActual);
+                        //Mostrar al usuario que ha terminado la partida, junto con las estadisticas obtenidas
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
                                         "\nPuntuación final: "+numPuntos +
-                                        "\nDuración de la partida: "+segTranscurridos+" seg","FIN DEL JUEGO", JOptionPane.ERROR_MESSAGE);
+                                        "\nDuración de la partida: "+segTranscurridos+" seg","Fin del juego - Cundy Crosh", JOptionPane.ERROR_MESSAGE);
+                        //Mostrar una segunda ventana emergente donde se pide el nombre del jugador
+                        do {
+                            nombreJugador = JOptionPane.showInputDialog(null, "Por favor, introduce tu nombre:");
+                        }while (nombreJugador==null || nombreJugador.length()<1);       //Si pulsa 'cancel', o si pulsa 'Ok' sin haber introducido ningún nombre,
+                        // se mostrará el mensaje infinitamente hasta que el usuario introduzca un nombre
+
+                        //TODO: Llamar a la BBDD para enviar los datos:
+                        //nombreJugador, numPuntos, fechaActual, segTranscurridos;
+
+                        //Terminar el programa
                         System.exit(0);
                     }
                 } else {
