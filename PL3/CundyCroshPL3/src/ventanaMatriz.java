@@ -125,8 +125,12 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                 }
 
                 System.out.println(row + " " + col);
+                //Elegimos el caramelo seleccionado y contamos la puntuacion obtenida en base a este
+                int carameloElegido = (int) matrizScala.apply(row * columnas + col);
                 scala.collection.immutable.List<Object> result =
                         Main.bucleJuego(matrizScala, columnas, filas, dificultad, numVidas, 1, row, col);
+                int puntuacion = Main.contarPuntuacion(result, carameloElegido);
+                numPuntos+=puntuacion;
 
                 if (result.equals(matrizScala)) {
                     System.out.println("Fallo");

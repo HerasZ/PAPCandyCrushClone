@@ -284,6 +284,19 @@ object Main {
     }
   }
 
+  def contarPuntuacion(matrizConEliminados:List[Int], elementoSeleccionado:Int): Int = {
+    val puntosEliminados:Int = contarEliminados(matrizConEliminados)
+    if(elementoSeleccionado==10) {
+      puntosEliminados+(puntosEliminados/10) + 5
+    } else if (elementoSeleccionado==20) {
+      puntosEliminados+(puntosEliminados/10) + 10
+    } else if (30<=elementoSeleccionado && elementoSeleccionado<=40) {
+      puntosEliminados+(puntosEliminados/10) + 15
+    } else {
+      puntosEliminados+(puntosEliminados/10)
+    }
+  }
+
   def bucleJuego(matriz: List[Int], numColumnas: Int, numFilas: Int, caramelosTipos: Int, vidas: Int, modo: Int, fila: Int, columna:Int): List[Int] = {
     if (vidas == 0) List() else {
       val carameloElegido: Int = matriz(fila * numColumnas + columna)
