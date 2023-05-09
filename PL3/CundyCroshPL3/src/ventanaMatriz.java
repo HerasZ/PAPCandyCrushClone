@@ -3,6 +3,12 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -11,6 +17,7 @@ import java.util.List;
 
 import scala.jdk.javaapi.CollectionConverters;
 
+import static com.sun.org.apache.xml.internal.security.algorithms.implementations.SignatureDSA.URI;
 import static java.lang.Thread.sleep;
 
 public class ventanaMatriz extends JFrame implements ActionListener {
@@ -136,27 +143,59 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                     System.out.println("Fallo");
                     numVidas--;
                     numVidasLabel.setText("Número de Vidas: "+ numVidas);
-                    if (numVidas==0){
+                    if (numVidas==0) {
                         //imprimir el tiempo que ha transcurrido desde que empezó la partida hasta que el usuario se ha quedado sin vidas
                         long tiempoFin = System.currentTimeMillis();
                         long tiempoTranscurrido = tiempoFin - tiempoInicio;
-                        segTranscurridos = tiempoTranscurrido / 1000.0;
-                        LocalDate fechaActual = LocalDate.now();
-                        LocalTime horaActual = LocalTime.now();
-                        System.out.println("Fecha actual al terminar la partida= "+fechaActual);
-                        System.out.println("Hora actual al terminar la partida= "+horaActual);
+                        segTranscurridos = (int) tiempoTranscurrido / 1000.0;       //Para facilitar el envio de datos a la BBDD
                         //Mostrar al usuario que ha terminado la partida, junto con las estadisticas obtenidas
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
-                                        "\nPuntuación final: "+numPuntos +
-                                        "\nDuración de la partida: "+segTranscurridos+" seg","Fin del juego - Cundy Crosh", JOptionPane.ERROR_MESSAGE);
+                                "\nPuntuación final: " + numPuntos +
+                                "\nDuración de la partida: " + segTranscurridos + " seg", "Fin del juego - Cundy Crosh", JOptionPane.ERROR_MESSAGE);
                         //Mostrar una segunda ventana emergente donde se pide el nombre del jugador
                         do {
                             nombreJugador = JOptionPane.showInputDialog(null, "Por favor, introduce tu nombre:");
-                        }while (nombreJugador==null || nombreJugador.length()<1);       //Si pulsa 'cancel', o si pulsa 'Ok' sin haber introducido ningún nombre,
+                        } while (nombreJugador == null || nombreJugador.length() < 1);       //Si pulsa 'cancel', o si pulsa 'Ok' sin haber introducido ningún nombre,
                         // se mostrará el mensaje infinitamente hasta que el usuario introduzca un nombre
 
-                        //TODO: Llamar a la BBDD para enviar los datos:
-                        //nombreJugador, numPuntos, fechaActual, segTranscurridos;
+                        // Creamos el Payload del JSON que vamos a mandar
+                        String jsonPayload = "{\"name\":" + nombreJugador + ",\"score\":" + numPuntos + ",\"segundos\":" + segTranscurridos + "}";
+                        // Cogemos la URL y realizamos la conexion
+                        URL url = null;
+                        try {
+                            url = new URL("https://scoreswebapppl3.azurewebsites.net/scores");
+                            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+                            // Indicamos que debe ser un POST
+                            conn.setRequestMethod("POST");
+                            // Indicamos que el tad es JSON
+                            conn.setRequestProperty("Content-Type", "application/json");
+                            // Enviamos el JSON
+                            conn.setDoOutput(true);
+                            try (OutputStream os = conn.getOutputStream()) {
+                                byte[] input = jsonPayload.getBytes(StandardCharsets.UTF_8);
+                                os.write(input, 0, input.length);
+                            }
+                            // Imprimimos la respuesta
+                            int responseCode = conn.getResponseCode();
+                            System.out.println("Response Code: " + responseCode);
+
+                        } catch (MalformedURLException e) {
+                            throw new RuntimeException(e);
+                        } catch (ProtocolException e) {
+                            throw new RuntimeException(e);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+
+                        //Hacemos que se abra la página web automáticamente
+                        try {
+                            java.net.URI uri = new URI("https://www.youtube.com/watch?v=Ev_hjExmAKc&ab_channel=panickingatthewrongdisco");
+                            Desktop.getDesktop().browse(uri);
+                        } catch (URISyntaxException e) {
+                            throw new RuntimeException(e);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
 
                         //Terminar el programa
                         System.exit(0);
