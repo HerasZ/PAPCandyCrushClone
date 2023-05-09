@@ -170,7 +170,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         // Cogemos la URL y realizamos la conexion
                         URL url = null;
                         try {
-                            url = new URL("https://scoreswebapppl3.azurewebsites.net/scores");
+                            url = new URL("https://webapppl3.azurewebsites.net/scores");
                             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                             // Indicamos que debe ser un POST
                             conn.setRequestMethod("POST");
