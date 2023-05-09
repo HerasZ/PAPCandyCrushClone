@@ -166,11 +166,13 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         // se mostrará el mensaje infinitamente hasta que el usuario introduzca un nombre
 
                         // Creamos el Payload del JSON que vamos a mandar
-                        String jsonPayload = "{\"id\":"+idUsuario+"\"name\":\"" + nombreJugador + "\",\"score\":" + numPuntos + ",\"segundos\":" + segTranscurridos + "}";
+                        System.out.println("USERID: "+idUsuario);
+                        String jsonPayload = "{\"id\":" + idUsuario + ",\"name\":\"" + nombreJugador + "\",\"score\":" + numPuntos + ",\"segundos\":" + (int) segTranscurridos + "}";
+                        System.out.println(jsonPayload);
                         // Cogemos la URL y realizamos la conexion
                         URL url = null;
                         try {
-                            url = new URL("https://webapppl3.azurewebsites.net/scores");
+                            url = new URL("https://webapppl3.azurewebsites.net/scores/");
                             HttpURLConnection conn = (HttpURLConnection) url.openConnection();
                             // Indicamos que debe ser un POST
                             conn.setRequestMethod("POST");
@@ -196,7 +198,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
                         //Hacemos que se abra la página web automáticamente
                         try {
-                            java.net.URI uri = new URI("https://www.youtube.com/watch?v=Ev_hjExmAKc&ab_channel=panickingatthewrongdisco");
+                            java.net.URI uri = new URI("https://webapppl3.azurewebsites.net/scores/"+idUsuario);
                             Desktop.getDesktop().browse(uri);
                         } catch (URISyntaxException e) {
                             throw new RuntimeException(e);
