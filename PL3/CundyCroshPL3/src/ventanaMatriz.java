@@ -148,6 +148,13 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         long tiempoFin = System.currentTimeMillis();
                         long tiempoTranscurrido = tiempoFin - tiempoInicio;
                         segTranscurridos = (int) tiempoTranscurrido / 1000.0;       //Para facilitar el envio de datos a la BBDD
+
+                        //Crear un id unívoco para el usuario
+                        LocalDate day = LocalDate.now();
+                        LocalTime time = LocalTime.now();
+                        int idUsuario = day.getDayOfMonth() + day.getMonthValue() + time.getSecond(); //    dia+mes+segundos
+                        System.out.println("numDias transformado a entero -> " + idUsuario);        //TODO
+
                         //Mostrar al usuario que ha terminado la partida, junto con las estadisticas obtenidas
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
                                 "\nPuntuación final: " + numPuntos +
@@ -159,7 +166,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         // se mostrará el mensaje infinitamente hasta que el usuario introduzca un nombre
 
                         // Creamos el Payload del JSON que vamos a mandar
-                        String jsonPayload = "{\"name\":" + nombreJugador + ",\"score\":" + numPuntos + ",\"segundos\":" + segTranscurridos + "}";
+                        String jsonPayload = "{\"id\":"+idUsuario+"\"name\":\"" + nombreJugador + "\",\"score\":" + numPuntos + ",\"segundos\":" + segTranscurridos + "}";
                         // Cogemos la URL y realizamos la conexion
                         URL url = null;
                         try {
