@@ -152,8 +152,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         //Crear un id unívoco para el usuario
                         LocalDate day = LocalDate.now();
                         LocalTime time = LocalTime.now();
-                        int idUsuario = day.getDayOfMonth() + day.getMonthValue() + time.getSecond(); //    dia+mes+segundos
-                        System.out.println("numDias transformado a entero -> " + idUsuario);        //TODO
+                        int idUsuario = day.getDayOfMonth() + day.getMonthValue() + time.getSecond() + time.getMinute(); //dia+mes+minutos+segundos
 
                         //Mostrar al usuario que ha terminado la partida, junto con las estadisticas obtenidas
                         JOptionPane.showMessageDialog(null, "Te quedaste sin vidas X.X, ¡Gracias por jugar!" +
@@ -165,6 +164,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
                         } while (nombreJugador == null || nombreJugador.length() < 1);       //Si pulsa 'cancel', o si pulsa 'Ok' sin haber introducido ningún nombre,
                         // se mostrará el mensaje infinitamente hasta que el usuario introduzca un nombre
 
+                        //IMPLEMENTACIÓN DE LA INTEGRACIÓN CLOUD:
                         // Creamos el Payload del JSON que vamos a mandar
                         System.out.println("USERID: "+idUsuario);
                         String jsonPayload = "{\"id\":" + idUsuario + ",\"name\":\"" + nombreJugador + "\",\"score\":" + numPuntos + ",\"segundos\":" + (int) segTranscurridos + "}";
@@ -198,7 +198,7 @@ public class ventanaMatriz extends JFrame implements ActionListener {
 
                         //Hacemos que se abra la página web automáticamente
                         try {
-                            java.net.URI uri = new URI("https://webapppl3.azurewebsites.net/scores/"+idUsuario);
+                            java.net.URI uri = new URI("https://highscoresnextjs.azurewebsites.net");
                             Desktop.getDesktop().browse(uri);
                         } catch (URISyntaxException e) {
                             throw new RuntimeException(e);
