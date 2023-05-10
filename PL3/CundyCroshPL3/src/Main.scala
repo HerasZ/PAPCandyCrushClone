@@ -284,6 +284,7 @@ object Main {
     }
   }
 
+  //Contar los puntos conseguidos por el usuario en el movimiento que ha realizado
   def contarPuntuacion(matrizConEliminados:List[Int], elementoSeleccionado:Int): Int = {
     val puntosEliminados:Int = contarEliminados(matrizConEliminados)
     if(elementoSeleccionado==10) {
